@@ -2,6 +2,16 @@
 
 import { UserPlus, FileText, Globe, Landmark, ShieldCheck, MapPin, ExternalLink, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
+
+const MapaImigrante = dynamic(() => import('@/components/MapaImigrante'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[350px] md:h-[500px] bg-slate-100 dark:bg-slate-800 animate-pulse rounded-2xl flex items-center justify-center">
+      <p className="text-muted-foreground font-medium">A carregar mapa...</p>
+    </div>
+  )
+});
 
 const resources = [
   {
@@ -92,38 +102,19 @@ export default function ApoioImigrante() {
       </div>
 
       {/* Map/Location Section */}
-      <section className="bg-slate-900 text-white rounded-[3rem] p-12 overflow-hidden relative">
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <div>
-            <h2 className="text-3xl font-bold mb-6">Onde encontrar ajuda presencial?</h2>
-            <div className="space-y-6">
-              <div className="flex gap-4">
-                <MapPin className="text-secondary flex-shrink-0" />
-                <div>
-                  <p className="font-bold">CNAIM - Centros Nacionais de Apoio</p>
-                  <p className="text-sm text-white/70">Lisboa, Porto, Coimbra e Faro.</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <HelpCircle className="text-secondary flex-shrink-0" />
-                <div>
-                  <p className="font-bold">Linha de Apoio ao Migrante</p>
-                  <p className="text-sm text-white/70">808 257 257 (Rede fixa) | 21 810 61 91 (Rede móvel)</p>
-                </div>
-              </div>
-            </div>
-            <button className="mt-10 px-8 py-4 bg-secondary text-white rounded-full font-bold hover:scale-105 transition-transform">
-              Ver Mapa de Balcões
-            </button>
-          </div>
-          <div className="hidden md:block">
-            {/* Visual element representing a map or network */}
-            <div className="w-full h-64 bg-white/5 rounded-3xl border border-white/10 flex items-center justify-center">
-              <Globe size={120} className="text-white/10 animate-pulse" />
-            </div>
-          </div>
+      <section className="bg-slate-50 dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[3rem] p-8 md:p-12 mb-20 relative overflow-hidden">
+        <div className="text-center mb-10 max-w-2xl mx-auto relative z-10">
+          <h2 className="text-3xl font-bold mb-4">Encontra Serviços Perto de Ti</h2>
+          <p className="text-muted-foreground">
+            Descobre onde ficam as agências AIMA, Lojas do Cidadão, Centros de Saúde, Finanças e Juntas de Freguesia mais próximos da tua localização.
+          </p>
         </div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
+        
+        <div className="relative z-10">
+          <MapaImigrante />
+        </div>
+        
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       </section>
     </div>
   );

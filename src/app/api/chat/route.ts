@@ -1,87 +1,103 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
 
-const SYSTEM_PROMPT = `És o assistente virtual da plataforma NavegaGov. 
-O teu objetivo é ajudar cidadãos portugueses e imigrantes a navegar nos serviços públicos digitais de Portugal.
-Deves ser amigável, paciente e usar uma linguagem simples e clara.
-Foca-te em temas como:
-- Portal das Finanças (IRS, NIF, Recibos Verdes, e-Fatura)
-- Segurança Social Direta (Subsídios, Pensões, Desemprego)
-- ePortugal (Cartão de Cidadão, Passaporte, Carta de Condução)
-- SNS 24 (Saúde, Marcações, Urgências)
-- Apoio ao Imigrante (CPLP, Vistos, NISS, Residência)
+const BASE_SYSTEM_PROMPT = `És um assistente do NavegaGov, uma plataforma de literacia digital portuguesa. Ajudas cidadãos a usar serviços públicos digitais em Portugal.
 
-Se não souberes algo, sugere que o utilizador consulte os tutoriais na galeria da plataforma ou contacte as linhas de apoio oficiais.
-Responde sempre em Português de Portugal. Sê conciso e claro.`;
+PORTAIS OFICIAIS:
+- Segurança Social Direta: https://www.seg-social.pt
+- Portal das Finanças AT: https://www.portaldasfinancas.gov.pt
+- SNS24: https://www.sns24.gov.pt
+- Autenticação.gov: https://www.autenticacao.gov.pt
+- IRN: https://irn.justica.gov.pt
+
+REGRAS: Responde em português europeu, linguagem simples, máximo 3 parágrafos.`;
 
 export async function POST(req: Request) {
-  // 1. Check for API key first
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
-    return NextResponse.json(
-      {
-        error: true,
-        reply:
-          "⚠️ A chave da API Gemini não está configurada. Adiciona a GEMINI_API_KEY ao ficheiro .env.local e reinicia o servidor.",
-      },
-      { status: 200 } // 200 so the chatbot shows the message instead of treating it as network error
-    );
+    return NextResponse.json({ error: true, reply: "Chave API não configurada." });
   }
 
-  // 2. Parse body
   let message: string;
+  let history: { role: string; content: string }[] = [];
+
   try {
     const body = await req.json();
     message = body.message;
-    if (!message || typeof message !== "string") {
-      return NextResponse.json(
-        { error: true, reply: "Mensagem inválida ou vazia." },
-        { status: 400 }
-      );
-    }
+    history = Array.isArray(body.history) ? body.history : [];
+    if (!message) return NextResponse.json({ error: true, reply: "Mensagem inválida." });
   } catch {
-    return NextResponse.json(
-      { error: true, reply: "Erro ao ler a mensagem enviada." },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: true, reply: "Erro ao ler mensagem." });
   }
 
-  // 3. Call Gemini
+  let contextTutoriais = "";
+  let contextProgresso = "Não autenticado";
+  let contextPerfil = "Desconhecido";
+
+  try {
+    const supabase = await createClient();
+
+    const { data: tutoriais } = await supabase
+      .from("tutoriais")
+      .select("titulo, nivel, plataformas(nome)")
+      .limit(20);
+
+    if (tutoriais && tutoriais.length > 0) {
+      contextTutoriais = tutoriais
+        .map((t: any) => `- "${t.titulo}" (${t.plataformas?.nome}, ${t.nivel})`)
+        .join("\n");
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data: prog } = await supabase
+        .from("progresso")
+        .select("completado, pontuacao, tutoriais(titulo)")
+        .eq("utilizador_id", user.id);
+
+      if (prog && prog.length > 0) {
+        contextProgresso = prog
+          .map((p: any) => `- ${p.tutoriais?.titulo}: ${p.completado ? "concluído" : "em progresso"}`)
+          .join("\n");
+      }
+
+      const { data: profile } = await supabase
+        .from("utilizadores")
+        .select("perfil, plataforma_preferida")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+        contextPerfil = `Perfil: ${profile.perfil}, Plataforma: ${profile.plataforma_preferida || "Nenhuma"}`;
+      }
+    }
+  } catch {}
+
+  const systemPrompt =
+    BASE_SYSTEM_PROMPT +
+    (contextTutoriais ? `\n\nTUTORIAIS:\n${contextTutoriais}` : "") +
+    `\n\nUTILIZADOR:\n${contextPerfil}\n\nPROGRESSO:\n${contextProgresso}`;
+
+  const contents = [
+    ...history.map((h) => ({
+      role: h.role === "user" ? "user" : "model",
+      parts: [{ text: h.content }],
+    })),
+    { role: "user", parts: [{ text: message }] },
+  ];
+
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      systemInstruction: SYSTEM_PROMPT,
+      model: "gemini-2.5-flash",
+      systemInstruction: systemPrompt,
     });
-
-    const result = await model.generateContent(message);
-    const text = result.response.text();
-
-    return NextResponse.json({ reply: text });
-  } catch (err: unknown) {
-    console.error("Gemini API Error:", err);
-
-    // Try fallback model if 2.0-flash not available
-    try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
-        systemInstruction: SYSTEM_PROMPT,
-      });
-      const result = await model.generateContent(message);
-      const text = result.response.text();
-      return NextResponse.json({ reply: text });
-    } catch (fallbackErr: unknown) {
-      console.error("Gemini Fallback Error:", fallbackErr);
-      const msg =
-        fallbackErr instanceof Error ? fallbackErr.message : "Erro desconhecido";
-      return NextResponse.json(
-        {
-          error: true,
-          reply: `❌ Erro ao contactar o Gemini: ${msg}. Verifica que a GEMINI_API_KEY é válida.`,
-        },
-        { status: 200 }
-      );
-    }
+    const result = await model.generateContent({ contents });
+    return NextResponse.json({ reply: result.response.text() });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Erro desconhecido";
+    return NextResponse.json({ error: true, reply: `Erro Gemini: ${msg}` });
   }
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
+import AccessibilityInitializer from "@/components/AccessibilityInitializer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,6 +21,7 @@ export default function RootLayout({
   return (
     <html lang="pt" className="scroll-smooth">
       <body className={`${inter.className} min-h-screen flex flex-col`}>
+        <AccessibilityInitializer />
         <Navbar />
         <main className="flex-grow">
           {children}

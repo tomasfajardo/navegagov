@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Search, BookOpen, Clock, ChevronRight, Video, FileText, Gamepad2 } from 'lucide-react';
+import { Search, BookOpen, Clock, ChevronRight, Video, FileText, Gamepad2, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -12,9 +12,10 @@ interface Tutorial {
   descricao: string;
   duracao_min: number;
   nivel: string;
-  tipo: 'video' | 'manual' | 'jogo';
+  tipo: 'video' | 'manual';
   plataforma_id: string;
   plataformas: { nome: string };
+  progresso?: { completado: boolean; pontuacao: number };
 }
 
 interface Plataforma {
@@ -23,9 +24,8 @@ interface Plataforma {
 }
 
 const TIPO_CONFIG = {
-  video:  { label: 'Vídeo',   icon: Video,    color: 'bg-red-100 text-red-700'  },
-  manual: { label: 'Manual',  icon: FileText,  color: 'bg-blue-100 text-blue-700' },
-  jogo:   { label: 'Jogo',    icon: Gamepad2,  color: 'bg-green-100 text-green-700' },
+  video:  { label: 'Vídeo',  icon: Video,    color: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300' },
+  manual: { label: 'Manual', icon: FileText,  color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' },
 };
 
 export default function TutoriaisPage() {
@@ -34,17 +34,65 @@ export default function TutoriaisPage() {
   const [selectedPlat, setSelectedPlat] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<any>(null);
+  const [prefPlatform, setPrefPlatform] = useState<string | null>(null);
 
   useEffect(() => { fetchData(); }, []);
 
   async function fetchData() {
     setLoading(true);
+    
+    // Check session
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    setSession(currentSession);
+
     const { data: plats } = await supabase.from('plataformas').select('*');
     if (plats) setPlataformas(plats);
+    
     const { data: tuts } = await supabase
       .from('tutoriais')
-      .select('*, plataformas(nome)');
-    if (tuts) setTutorials(tuts);
+      .select('*, plataformas(nome)')
+      .in('tipo', ['video', 'manual']);
+    
+    if (tuts) {
+      if (currentSession) {
+        // Fetch progress for this user
+        const { data: userProg } = await supabase
+          .from('progresso')
+          .select('tutorial_id, completado, pontuacao')
+          .eq('utilizador_id', currentSession.user.id);
+        
+        const tutsWithProg = tuts.map(t => ({
+          ...t,
+          progresso: userProg?.find(p => p.tutorial_id === t.id)
+        }));
+
+        // Fetch User Preference
+        const { data: profile } = await supabase
+          .from('utilizadores')
+          .select('plataforma_preferida')
+          .eq('id', currentSession.user.id)
+          .single();
+        
+        if (profile?.plataforma_preferida) {
+          setPrefPlatform(profile.plataforma_preferida);
+          
+          // Sort tutorials to prioritize preferred platform
+          const sorted = [...tutsWithProg].sort((a, b) => {
+            const aMatch = a.plataformas?.nome?.toLowerCase().includes(profile.plataforma_preferida.toLowerCase());
+            const bMatch = b.plataformas?.nome?.toLowerCase().includes(profile.plataforma_preferida.toLowerCase());
+            if (aMatch && !bMatch) return -1;
+            if (!aMatch && bMatch) return 1;
+            return 0;
+          });
+          setTutorials(sorted);
+        } else {
+          setTutorials(tutsWithProg);
+        }
+      } else {
+        setTutorials(tuts);
+      }
+    }
     setLoading(false);
   }
 
@@ -59,8 +107,8 @@ export default function TutoriaisPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <header className="mb-12">
-        <h1 className="text-4xl font-extrabold mb-4">Galeria de Tutoriais</h1>
-        <p className="text-muted-foreground text-lg">Vídeos, manuais e jogos interativos para aprender a usar os portais do Estado.</p>
+        <h1 className="text-4xl font-extrabold mb-4">Tutoriais</h1>
+        <p className="text-muted-foreground text-lg">Vídeos e manuais para aprender a usar os portais do Estado.</p>
       </header>
 
       {/* Filters */}
@@ -130,9 +178,35 @@ export default function TutoriaisPage() {
                       {t.duracao_min} min
                     </div>
                     <div className="flex items-center gap-1 text-primary font-semibold text-sm">
-                      Abrir <ChevronRight size={18} />
+                      {t.progresso?.completado ? 'Rever' : 'Abrir'} <ChevronRight size={18} />
                     </div>
                   </div>
+
+                  {/* Progress bar */}
+                  {session && t.progresso && (
+                    <div className="mt-6">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                          {t.progresso.completado ? 'Concluído' : 'Iniciado'}
+                        </span>
+                        <span className="text-[10px] font-bold text-primary">{t.progresso.completado ? '100%' : '50%'}</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-accent rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: t.progresso.completado ? '100%' : '50%' }}
+                          className={`h-full rounded-full ${t.progresso.completado ? 'bg-primary' : 'bg-yellow-500'}`}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Checkmark */}
+                  {session && t.progresso?.completado && (
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg border-2 border-background animate-in zoom-in duration-300">
+                      <CheckCircle size={18} />
+                    </div>
+                  )}
                 </Link>
               </motion.div>
             );
