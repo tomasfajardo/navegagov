@@ -4,6 +4,27 @@ import { useTranslations } from 'next-intl'
 
 const API_KEY = process.env.NEXT_PUBLIC_TOMTOM_API_KEY
 
+const CIDADES = [
+  { lat: 38.7169, lon: -9.1399 },  // Lisboa
+  { lat: 41.1579, lon: -8.6291 },  // Porto
+  { lat: 40.2033, lon: -8.4103 },  // Coimbra
+  { lat: 41.5454, lon: -8.4265 },  // Braga
+  { lat: 37.0193, lon: -7.9304 },  // Faro
+  { lat: 40.6405, lon: -8.6538 },  // Aveiro
+  { lat: 38.5244, lon: -8.8882 },  // Setúbal
+  { lat: 38.5714, lon: -7.9065 },  // Évora
+  { lat: 39.7437, lon: -8.8071 },  // Leiria
+  { lat: 40.6566, lon: -7.9122 },  // Viseu
+  { lat: 41.6918, lon: -8.8307 },  // Viana do Castelo
+  { lat: 41.3006, lon: -7.7457 },  // Vila Real
+  { lat: 41.8061, lon: -6.7589 },  // Bragança
+  { lat: 39.2369, lon: -8.6881 },  // Santarém
+  { lat: 39.8236, lon: -7.4958 },  // Castelo Branco
+  { lat: 39.2968, lon: -7.4294 },  // Portalegre
+  { lat: 38.0150, lon: -7.8653 },  // Beja
+  { lat: 40.5376, lon: -7.2661 },  // Guarda
+]
+
 const CATEGORIAS = [
   { label: 'AIMA',            query: 'Agência para a Integração Migrações e Asilo', cor: '#3B82F6' },
   { label: 'Loja do Cidadão', query: 'Loja do Cidadão',                             cor: '#10B981' },
@@ -48,15 +69,43 @@ export default function MapaImigrante() {
     }
   }, [])
 
-  async function fetchCategoria(cat: typeof CATEGORIAS[0]) {
-    const url =
-      `https://api.tomtom.com/search/2/search/${encodeURIComponent(cat.query)}.json` +
-      `?key=${API_KEY}&countrySet=PT&limit=50&language=pt-PT`
+  async function fetchCategoriaRegional(cat: typeof CATEGORIAS[0]): Promise<any[]> {
+    const respostas = await Promise.all(
+      CIDADES.map(cidade => {
+        const url =
+          `https://api.tomtom.com/search/2/search/${encodeURIComponent(cat.query)}.json` +
+          `?key=${API_KEY}&countrySet=PT&limit=5&language=pt-PT` +
+          `&lat=${cidade.lat}&lon=${cidade.lon}&radius=30000`
+        return fetch(url)
+          .then(r => r.ok ? r.json() : { results: [] })
+          .then(data => (data.results ?? []) as any[])
+          .catch(() => [] as any[])
+      })
+    )
+    return respostas.flat()
+  }
 
-    const r = await fetch(url)
-    if (!r.ok) throw new Error(`HTTP ${r.status}`)
-    const data = await r.json()
-    return (data.results ?? []) as any[]
+  function distanciaMetros(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371000
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLon = (lon2 - lon1) * Math.PI / 180
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2
+    return R * 2 * Math.asin(Math.sqrt(a))
+  }
+
+  function deduplicar(results: any[]): any[] {
+    const kept: any[] = []
+    for (const r of results) {
+      const lat = r.position?.lat
+      const lon = r.position?.lon
+      if (lat == null || lon == null) continue
+      const isDup = kept.some(k =>
+        distanciaMetros(lat, lon, k.position.lat, k.position.lon) < 500
+      )
+      if (!isDup) kept.push(r)
+    }
+    return kept
   }
 
   function criarMarcador(tt: any, cat: typeof CATEGORIAS[0], result: any): MarkerEntry | null {
@@ -101,8 +150,8 @@ export default function MapaImigrante() {
 
     const resultados = await Promise.all(
       CATEGORIAS.map(cat =>
-        fetchCategoria(cat)
-          .then(results => ({ cat, results, ok: true as const }))
+        fetchCategoriaRegional(cat)
+          .then(results => ({ cat, results: deduplicar(results), ok: true as const }))
           .catch(err => {
             console.error(`[MapaImigrante] Erro ao carregar "${cat.label}":`, err)
             return { cat, results: [] as any[], ok: false as const }
@@ -121,7 +170,7 @@ export default function MapaImigrante() {
         const entry = criarMarcador(tt, cat, result)
         if (entry) entries.push(entry)
       })
-      console.log(`[MapaImigrante] "${cat.label}": ${results.length} resultados → ${entries.filter(e => e.categoria === cat.label).length} marcadores`)
+      console.log(`[MapaImigrante] "${cat.label}": ${results.length} resultados únicos → ${entries.filter(e => e.categoria === cat.label).length} marcadores`)
     })
 
     allMarkersRef.current = entries
