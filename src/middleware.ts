@@ -2,6 +2,27 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/utils/supabase/middleware';
 
 export async function middleware(request: NextRequest) {
+  // Locale Detection & Cookie management
+  const locales = ['pt', 'en'];
+  const defaultLocale = 'pt';
+  let locale = request.cookies.get('NEXT_LOCALE')?.value;
+
+  if (!locale || !locales.includes(locale)) {
+    const acceptLanguage = request.headers.get('accept-language') || '';
+    const detected = acceptLanguage.split(',')[0].split('-')[0];
+    locale = locales.includes(detected) ? detected : defaultLocale;
+  }
+
+  const setLocaleCookie = (res: NextResponse) => {
+    if (request.cookies.get('NEXT_LOCALE')?.value !== locale) {
+      res.cookies.set('NEXT_LOCALE', locale!, {
+        path: '/',
+        maxAge: 31536000 // 1 year
+      });
+    }
+    return res;
+  };
+
   const { supabaseResponse, user } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
@@ -11,7 +32,7 @@ export async function middleware(request: NextRequest) {
 
   if (isAdminRoute || isUserRoute) {
     if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url));
+      return setLocaleCookie(NextResponse.redirect(new URL('/login', request.url)));
     }
 
     // For admin routes, check the profile
@@ -20,10 +41,6 @@ export async function middleware(request: NextRequest) {
       // since the session only has auth metadata. 
       // But we can also check the user's public metadata if we synced it.
       // However, the database is the source of truth for the 'admin' role.
-      
-      // Using a quick hack: if we're in middleware, we can't easily wait for DB
-      // unless we use a fast check or trust the token's app_metadata.
-      // I'll check the 'utilizadores' table.
       
       const { createServerClient } = await import('@supabase/ssr');
       const supabase = createServerClient(
@@ -50,12 +67,12 @@ export async function middleware(request: NextRequest) {
       const jaTemPerfil = profile?.perfil && perfisValidos.includes(profile.perfil);
 
       if (!profile?.onboarding_respostas && !jaTemPerfil && pathname !== '/onboarding' && profile?.perfil !== 'admin') {
-        return NextResponse.redirect(new URL('/onboarding', request.url));
+        return setLocaleCookie(NextResponse.redirect(new URL('/onboarding', request.url)));
       }
 
       if (isAdminRoute && profile?.perfil !== 'admin') {
         // Not an admin, redirect to progress or home
-        return NextResponse.redirect(new URL('/progresso', request.url));
+        return setLocaleCookie(NextResponse.redirect(new URL('/progresso', request.url)));
       }
     }
   }
@@ -85,7 +102,7 @@ export async function middleware(request: NextRequest) {
     const jaTemPerfil = profile?.perfil && perfisValidos.includes(profile.perfil);
 
     if (!profile?.onboarding_respostas && !jaTemPerfil && profile?.perfil !== 'admin') {
-      return NextResponse.redirect(new URL('/onboarding', request.url));
+      return setLocaleCookie(NextResponse.redirect(new URL('/onboarding', request.url)));
     }
   }
 
@@ -111,13 +128,13 @@ export async function middleware(request: NextRequest) {
       .single();
 
     if (profile?.perfil === 'admin') {
-      return NextResponse.redirect(new URL('/admin', request.url));
+      return setLocaleCookie(NextResponse.redirect(new URL('/admin', request.url)));
     } else {
-      return NextResponse.redirect(new URL('/progresso', request.url));
+      return setLocaleCookie(NextResponse.redirect(new URL('/progresso', request.url)));
     }
   }
 
-  return supabaseResponse;
+  return setLocaleCookie(supabaseResponse);
 }
 
 export const config = {

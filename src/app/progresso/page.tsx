@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { Award, BookOpen, CheckCircle, Target, Zap, TrendingUp, Calendar, Loader2, Lock, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface ProgressItem {
   id: string;
@@ -22,6 +23,9 @@ interface ProgressItem {
 const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function ProgressoPage() {
+  const t = useTranslations('Progresso');
+  const locale = useLocale();
+
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [progress, setProgress] = useState<ProgressItem[]>([]);
@@ -112,7 +116,7 @@ export default function ProgressoPage() {
   const barData = Array.from(platformStats.entries()).map(([name, value]) => ({ name, completados: value }));
 
   // Data for Pie Chart: Area Distribution
-  const categoryData = barData.length > 0 ? barData.map(d => ({ name: d.name, value: d.completados })) : [{ name: 'Sem dados', value: 1 }];
+  const categoryData = barData.length > 0 ? barData.map(d => ({ name: d.name, value: d.completados })) : [{ name: t('noData'), value: 1 }];
 
   if (loading) {
     return (
@@ -128,21 +132,23 @@ export default function ProgressoPage() {
     <div className="max-w-7xl mx-auto px-4 py-12">
       <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-4xl font-extrabold mb-2 text-foreground">Olá, {userProfile?.nome?.split(' ')[0] || 'Utilizador'}</h1>
+          <h1 className="text-4xl font-extrabold mb-2 text-foreground">
+            {t('title')}, {userProfile?.nome?.split(' ')[0] || t('user')}
+          </h1>
           <p className="text-muted-foreground text-lg">
-            {userProfile?.perfil === 'idoso' && "A aprender ao seu próprio ritmo para dominar o mundo digital."}
-            {userProfile?.perfil === 'imigrante' && "Facilitando a sua integração em Portugal através dos serviços públicos."}
-            {userProfile?.perfil === 'adulto' && "Superando barreiras e simplificando o seu dia-a-dia digital."}
-            {userProfile?.perfil === 'jovem_adulto' && "Gerindo o seu futuro e serviços públicos com total autonomia."}
-            {!['idoso', 'imigrante', 'adulto', 'jovem_adulto'].includes(userProfile?.perfil) && "Aqui está o resumo da tua jornada de aprendizagem."}
+            {userProfile?.perfil === 'idoso' && t('idosoText')}
+            {userProfile?.perfil === 'imigrante' && t('imigranteText')}
+            {userProfile?.perfil === 'adulto' && t('adultoText')}
+            {userProfile?.perfil === 'jovem_adulto' && t('jovemText')}
+            {!['idoso', 'imigrante', 'adulto', 'jovem_adulto'].includes(userProfile?.perfil) && t('defaultText')}
           </p>
         </div>
         <div className="flex gap-4">
           <div className="glass px-6 py-3 rounded-2xl flex items-center gap-3 border border-primary/20 shadow-lg shadow-primary/5">
             <Zap className="text-yellow-500 fill-yellow-500" size={24} />
             <div>
-              <p className="text-[10px] uppercase font-bold text-muted-foreground leading-none mb-1">Ritmo Atual</p>
-              <p className="font-bold text-lg leading-none">{stats.activeDays > 0 ? 'Focado' : 'Iniciante'}</p>
+              <p className="text-[10px] uppercase font-bold text-muted-foreground leading-none mb-1">{t('ritmo')}</p>
+              <p className="font-bold text-lg leading-none">{stats.activeDays > 0 ? t('focado') : t('iniciante')}</p>
             </div>
           </div>
         </div>
@@ -150,18 +156,18 @@ export default function ProgressoPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <StatCard icon={<CheckCircle size={24} />} label="Concluídos" value={stats.totalCompleted.toString()} sub="Total de tutoriais" />
-        <StatCard icon={<Award size={24} />} label="Badges" value={stats.totalBadges.toString()} sub="Conquistas ganhas" />
-        <StatCard icon={<Target size={24} />} label="Média" value={`${stats.avgScore}%`} sub="Performance global" />
-        <StatCard icon={<Calendar size={24} />} label="Dias Ativos" value={stats.activeDays.toString()} sub="Dias de aprendizagem" />
+        <StatCard icon={<CheckCircle size={24} />} label={t('concluidos')} value={stats.totalCompleted.toString()} sub={t('concluidosSub')} />
+        <StatCard icon={<Award size={24} />} label={t('badges')} value={stats.totalBadges.toString()} sub={t('badgesSub')} />
+        <StatCard icon={<Target size={24} />} label={t('media')} value={`${stats.avgScore}%`} sub={t('mediaSub')} />
+        <StatCard icon={<Calendar size={24} />} label={t('dias')} value={stats.activeDays.toString()} sub={t('diasSub')} />
       </div>
 
       {/* Badges Slider Section */}
       <section className="mb-12">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-bold">As Minhas Conquistas</h3>
+          <h3 className="text-2xl font-bold">{t('conquistasTitle')}</h3>
           <span className="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
-            {stats.totalBadges} de {allBadges.length} desbloqueados
+            {stats.totalBadges} {locale === 'en' ? 'of' : 'de'} {allBadges.length} {t('unlockedOf')}
           </span>
         </div>
 
@@ -197,11 +203,11 @@ export default function ProgressoPage() {
                 {isEarned ? (
                   <div className="pt-4 border-t border-border flex items-center gap-2 text-xs font-bold text-emerald-500">
                     <CheckCircle size={14} /> 
-                    Conquistado em {new Date(earnedInfo.data_conquista).toLocaleDateString('pt-PT')}
+                    {t('earnedOn')} {new Date(earnedInfo.data_conquista).toLocaleDateString(locale)}
                   </div>
                 ) : (
                   <div className="pt-4 border-t border-border flex items-center gap-2 text-xs font-bold text-muted-foreground">
-                    <Info size={14} /> Bloqueado
+                    <Info size={14} /> {t('locked')}
                   </div>
                 )}
               </div>
@@ -214,9 +220,9 @@ export default function ProgressoPage() {
         {/* Platform Chart */}
         <div className="lg:col-span-2 bg-card border border-border rounded-3xl p-8 shadow-sm">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-bold">Domínio por Plataforma</h3>
+            <h3 className="text-xl font-bold">{t('dominioTitle')}</h3>
             <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
-              <TrendingUp size={14} /> Tutoriais concluídos
+              <TrendingUp size={14} /> {t('dominioSub')}
             </div>
           </div>
           <div className="h-[300px] w-full">
@@ -239,7 +245,7 @@ export default function ProgressoPage() {
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex items-center justify-center border-2 border-dashed border-muted/20 rounded-2xl">
-                <p className="text-muted-foreground">Sem dados para mostrar</p>
+                <p className="text-muted-foreground">{t('noData')}</p>
               </div>
             )}
           </div>
@@ -247,7 +253,7 @@ export default function ProgressoPage() {
 
         {/* Distribution Chart */}
         <div className="bg-card border border-border rounded-3xl p-8 shadow-sm flex flex-col">
-          <h3 className="text-xl font-bold mb-8">Distribuição de Foco</h3>
+          <h3 className="text-xl font-bold mb-8">{t('focoTitle')}</h3>
           <div className="h-[200px] w-full flex-grow">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -284,8 +290,8 @@ export default function ProgressoPage() {
       {/* History */}
       <section className="mt-12">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-bold">Histórico de Atividades</h3>
-          {progress.length > 0 && <span className="text-xs font-bold uppercase tracking-widest text-primary">Dados Reais</span>}
+          <h3 className="text-2xl font-bold">{t('historicoTitle')}</h3>
+          {progress.length > 0 && <span className="text-xs font-bold uppercase tracking-widest text-primary">{t('dadosReais')}</span>}
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -293,10 +299,10 @@ export default function ProgressoPage() {
             progress.map((p) => (
               <AchievementItem 
                 key={p.id}
-                title={p.badge_atribuido ? "Novo Badge: " + p.badge_atribuido : "Tutorial Concluído"} 
+                title={p.badge_atribuido ? t('novoBadge') + ": " + p.badge_atribuido : t('tutorialConcluido')} 
                 desc={`${p.tutoriais?.titulo} - ${p.tutoriais?.plataformas?.nome}`}
                 score={p.pontuacao}
-                date={new Date(p.data).toLocaleDateString('pt-PT')}
+                date={new Date(p.data).toLocaleDateString(locale)}
                 icon={p.badge_atribuido ? "🏆" : "✅"}
                 highlight={!!p.badge_atribuido}
               />
@@ -304,7 +310,7 @@ export default function ProgressoPage() {
           ) : (
             <div className="md:col-span-2 text-center py-16 bg-accent/50 rounded-3xl border-2 border-dashed border-border">
               <BookOpen size={48} className="mx-auto mb-4 text-muted-foreground opacity-20" />
-              <p className="text-muted-foreground font-medium">Ainda não tens atividades registadas. Começa a tua jornada!</p>
+              <p className="text-muted-foreground font-medium">{t('semDados')}</p>
             </div>
           )}
         </div>

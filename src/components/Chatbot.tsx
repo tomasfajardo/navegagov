@@ -4,23 +4,24 @@ import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, X, Bot, User, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
-
-const SUGGESTIONS = [
-  'Como entrego o IRS online?',
-  'Como me inscrevo na Segurança Social?',
-  'Como ativo a Chave Móvel Digital?',
-  'Como me inscrevo no SNS sendo imigrante?',
-];
-
-const INITIAL_BOT_MESSAGE = 'Olá! Sou o assistente da NavegaGov. Como posso ajudar-te hoje com os serviços públicos?';
+import { useTranslations } from 'next-intl';
 
 type Message = { role: 'user' | 'bot'; content: string };
 type HistoryEntry = { role: 'user' | 'model'; content: string };
 
 export default function Chatbot() {
+  const t = useTranslations('Chatbot');
+
+  const SUGGESTIONS = [
+    t('suggestion1'),
+    t('suggestion2'),
+    t('suggestion3'),
+    t('suggestion4'),
+  ];
+
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'bot', content: INITIAL_BOT_MESSAGE }
+    { role: 'bot', content: t('initialMessage') }
   ]);
   const [historico, setHistorico] = useState<HistoryEntry[]>([]);
   const [input, setInput] = useState('');
@@ -43,26 +44,31 @@ export default function Chatbot() {
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
 
+    const updatedHistory: HistoryEntry[] = [
+      ...historico,
+      { role: 'user', content: userMessage }
+    ];
+    setHistorico(updatedHistory);
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage, history: historico }),
+        body: JSON.stringify({ message: userMessage, history: updatedHistory }),
       });
 
       const data = await response.json();
-      const replyText = data.reply || 'Desculpa, tive um problema ao processar a tua mensagem.';
+      const replyText = data.reply || t('fallbackReply');
 
       setMessages(prev => [...prev, { role: 'bot', content: replyText }]);
       setHistorico(prev => [
         ...prev,
-        { role: 'user', content: userMessage },
         { role: 'model', content: replyText },
       ]);
     } catch {
       setMessages(prev => [
         ...prev,
-        { role: 'bot', content: '❌ Erro de ligação. Verifica a tua internet e tenta novamente.' },
+        { role: 'bot', content: t('errorMessage') },
       ]);
     } finally {
       setIsLoading(false);
@@ -85,7 +91,7 @@ export default function Chatbot() {
             <div className="bg-primary p-4 text-white flex justify-between items-center shrink-0">
               <div className="flex items-center gap-2">
                 <Bot size={20} />
-                <span className="font-bold">Assistente NavegaGov</span>
+                <span className="font-bold">{t('assistantName')}</span>
               </div>
               <button onClick={() => setIsOpen(false)} className="hover:bg-white/20 p-1 rounded-full">
                 <X size={20} />
@@ -145,7 +151,7 @@ export default function Chatbot() {
                 <div className="flex justify-start">
                   <div className="bg-accent p-3 rounded-2xl rounded-tl-none flex items-center gap-2">
                     <Loader2 size={16} className="animate-spin text-primary" />
-                    <span className="text-sm">A pensar...</span>
+                    <span className="text-sm">{t('thinking')}</span>
                   </div>
                 </div>
               )}
@@ -159,7 +165,7 @@ export default function Chatbot() {
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Escreve a tua dúvida..."
+                  placeholder={t('placeholder')}
                   className="flex-grow bg-accent rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
                 <button
@@ -181,7 +187,7 @@ export default function Chatbot() {
       >
         <MessageCircle size={28} />
         <span className="absolute -top-12 right-0 bg-white dark:bg-slate-800 text-xs px-3 py-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-foreground font-medium border border-border">
-          Precisas de ajuda?
+          {t('helpTooltip')}
         </span>
       </button>
     </div>

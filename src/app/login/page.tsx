@@ -5,9 +5,10 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Mail, Lock, Loader2, ArrowRight, ChevronRight, User } from 'lucide-react';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 export default function LoginPage() {
+  const t = useTranslations('Login');
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,7 +32,7 @@ export default function LoginPage() {
       });
       if (error) throw error;
     } catch (err: any) {
-      setError(err.message || 'Erro ao ligar ao Google.');
+      setError(err.message || t('errGoogle'));
       setLoading(false);
     }
   };
@@ -59,13 +60,13 @@ export default function LoginPage() {
       if (profileError || profile?.perfil !== 'admin') {
         // Not an admin or error fetching profile
         await supabase.auth.signOut();
-        throw new Error('Credenciais de administrador inválidas.');
+        throw new Error(t('errInvalidAdmin'));
       }
 
       router.push('/admin');
       router.refresh();
     } catch (err: any) {
-      setError(err.message || 'Erro ao entrar como administrador.');
+      setError(err.message || t('errAdminLogin'));
       setLoading(false);
     }
   };
@@ -91,10 +92,10 @@ export default function LoginPage() {
             {isAdminMode ? <ShieldCheck size={32} /> : <User size={32} />}
           </motion.div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {isAdminMode ? 'Acesso Administrativo' : 'Bem-vindo'}
+            {isAdminMode ? t('adminTitle') : t('welcome')}
           </h1>
           <p className="text-muted-foreground mt-2">
-            {isAdminMode ? 'Gestão de conteúdos NavegaGov' : 'Entra na tua conta para continuar'}
+            {isAdminMode ? t('adminSubtitle') : t('userSubtitle')}
           </p>
         </div>
 
@@ -132,7 +133,7 @@ export default function LoginPage() {
                       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
                       <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                     </svg>
-                    Entrar com Google
+                    {t('loginGoogle')}
                   </>
                 )}
               </button>
@@ -142,7 +143,7 @@ export default function LoginPage() {
                   <span className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Ou</span>
+                  <span className="bg-background px-2 text-muted-foreground">{t('or')}</span>
                 </div>
               </div>
 
@@ -152,7 +153,7 @@ export default function LoginPage() {
               >
                 <div className="flex items-center gap-3">
                   <ShieldCheck className="text-muted-foreground group-hover:text-primary transition-colors" size={20} />
-                  <span className="text-sm font-medium">És administrador?</span>
+                  <span className="text-sm font-medium">{t('isAdmin')}</span>
                 </div>
                 <ChevronRight size={18} className="text-muted-foreground" />
               </button>
@@ -167,7 +168,7 @@ export default function LoginPage() {
               className="space-y-5"
             >
               <div className="space-y-2">
-                <label className="text-sm font-medium ml-1">Email de Administrador</label>
+                <label className="text-sm font-medium ml-1">{t('adminEmail')}</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                   <input 
@@ -182,7 +183,7 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium ml-1">Palavra-passe</label>
+                <label className="text-sm font-medium ml-1">{t('password')}</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                   <input 
@@ -201,7 +202,7 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full py-4 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-600/20"
               >
-                {loading ? <Loader2 className="animate-spin" size={20} /> : 'Entrar como Administrador'}
+                {loading ? <Loader2 className="animate-spin" size={20} /> : t('loginAdmin')}
                 {!loading && <ArrowRight size={20} />}
               </button>
 
@@ -210,7 +211,7 @@ export default function LoginPage() {
                 onClick={() => setIsAdminMode(false)}
                 className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
               >
-                Voltar ao login normal
+                {t('backNormal')}
               </button>
             </motion.form>
           )}
@@ -218,11 +219,10 @@ export default function LoginPage() {
 
         <div className="mt-8 pt-6 border-t border-border text-center">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Ao entrar, aceitas os Termos de Serviço e a Política de Privacidade do NavegaGov.
+            {t('terms')}
           </p>
         </div>
       </motion.div>
     </div>
   );
 }
-

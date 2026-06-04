@@ -31,7 +31,7 @@ export default function TabGerirUtilizadores() {
 
     if (userData) setUtilizadores(userData);
     
-    const completedCount = pData?.filter(p => p.completado).length || 0;
+    const completedCount = pData?.filter((p: any) => p.completado).length || 0;
     const totalProgress = pData?.length || 1;
 
     setStats({

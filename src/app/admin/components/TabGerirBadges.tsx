@@ -74,7 +74,7 @@ export default function TabGerirBadges() {
       const now = new Date();
       const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       
-      const thisWeekCount = hist.filter(h => new Date(h.data_conquista) > oneWeekAgo).length;
+      const thisWeekCount = hist.filter((h: any) => new Date(h.data_conquista) > oneWeekAgo).length;
       
       const badgeCounts = hist.reduce((acc: any, h: any) => {
         acc[h.badges_definicoes?.nome] = (acc[h.badges_definicoes?.nome] || 0) + 1;

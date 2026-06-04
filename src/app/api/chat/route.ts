@@ -26,6 +26,12 @@ export async function POST(req: Request) {
     const body = await req.json();
     message = body.message;
     history = Array.isArray(body.history) ? body.history : [];
+    
+    // Deduplicate the last user message in history if it matches the current request message
+    if (history.length > 0 && history[history.length - 1].role === "user" && history[history.length - 1].content === message) {
+      history = history.slice(0, -1);
+    }
+
     if (!message) return NextResponse.json({ error: true, reply: "Mensagem inválida." });
   } catch {
     return NextResponse.json({ error: true, reply: "Erro ao ler mensagem." });

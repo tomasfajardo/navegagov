@@ -25,7 +25,10 @@ export default function TabAdicionarConteudo({
     plataforma_id: editingTutorial?.plataforma_id || '',
     nivel: editingTutorial?.nivel || 'iniciante',
     tipo: editingTutorial?.tipo || 'video',
-    duracao_min: editingTutorial?.duracao_min || 5
+    duracao_min: editingTutorial?.duracao_min || 5,
+    plataforma: editingTutorial?.plataforma || 'Segurança Social',
+    tipo_conteudo: editingTutorial?.tipo_conteudo || 'Vídeo',
+    idioma: editingTutorial?.idioma || 'Português'
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,7 +81,7 @@ export default function TabAdicionarConteudo({
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('conteudos')
           .upload(filePath, file, {
-            onUploadProgress: (p) => {
+            onUploadProgress: (p: any) => {
               setProgress(10 + Math.round((p.loaded / p.total) * 80));
             }
           });
@@ -132,7 +135,10 @@ export default function TabAdicionarConteudo({
           plataforma_id: plataformas[0]?.id || '',
           nivel: 'iniciante',
           tipo: 'video',
-          duracao_min: 5
+          duracao_min: 5,
+          plataforma: 'Segurança Social',
+          tipo_conteudo: 'Vídeo',
+          idioma: 'Português'
         });
         setProgress(0);
         if (onSuccess) onSuccess();
@@ -317,6 +323,48 @@ export default function TabAdicionarConteudo({
                 onChange={(e) => setMetadata(m => ({ ...m, duracao_min: parseInt(e.target.value) }))}
                 className="w-full px-4 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none"
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 border-t border-border/40 pt-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Plataforma (Filtro)</label>
+              <select 
+                value={metadata.plataforma}
+                onChange={(e) => setMetadata(m => ({ ...m, plataforma: e.target.value }))}
+                className="w-full px-4 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none"
+              >
+                {['Segurança Social', 'Portal das Finanças', 'SNS24', 'IRN', 'Autenticação.gov', 'Apoio ao Imigrante', 'ePortugal'].map(plat => (
+                  <option key={plat} value={plat}>{plat}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tipo de Conteúdo</label>
+              <select 
+                value={metadata.tipo_conteudo}
+                onChange={(e) => setMetadata(m => ({ ...m, tipo_conteudo: e.target.value }))}
+                className="w-full px-4 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none"
+              >
+                {['Vídeo', 'Manual PDF', 'Jogo Interativo', 'Questionário'].map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 pb-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Idioma</label>
+              <select 
+                value={metadata.idioma}
+                onChange={(e) => setMetadata(m => ({ ...m, idioma: e.target.value }))}
+                className="w-full px-4 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none"
+              >
+                {['Português', 'English'].map(lang => (
+                  <option key={lang} value={lang}>{lang}</option>
+                ))}
+              </select>
             </div>
           </div>
 

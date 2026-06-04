@@ -4,44 +4,47 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  User, Plane, Monitor, GraduationCap, Check, 
+import { useTranslations } from 'next-intl';
+import {
+  User, Plane, Monitor, GraduationCap, Check,
   Calendar, Mail, Star, Zap,
   TrendingUp, BookOpen, Loader2, Lock, Info
 } from 'lucide-react';
 
-const profiles = [
-  { 
-    id: 'idoso', 
-    label: 'Idoso', 
-    icon: User, 
-    color: 'bg-blue-500',
-    description: 'Quero aprender a usar os serviços digitais do Estado' 
-  },
-  { 
-    id: 'imigrante', 
-    label: 'Imigrante', 
-    icon: Plane, 
-    color: 'bg-emerald-500',
-    description: 'Sou novo em Portugal e preciso de ajuda com documentação' 
-  },
-  { 
-    id: 'adulto', 
-    label: 'Adulto com dificuldades', 
-    icon: Monitor, 
-    color: 'bg-orange-500',
-    description: 'Tenho dificuldade em usar plataformas digitais' 
-  },
-  { 
-    id: 'jovem_adulto', 
-    label: 'Jovem adulto', 
-    icon: GraduationCap, 
-    color: 'bg-purple-500',
-    description: 'Quero aprender a gerir os meus serviços públicos' 
-  },
-];
-
 export default function PerfilPage() {
+  const t = useTranslations('Perfil');
+
+  const profiles = [
+    {
+      id: 'idoso',
+      label: t('profiles_idoso_label'),
+      icon: User,
+      color: 'bg-blue-500',
+      description: t('profiles_idoso_desc'),
+    },
+    {
+      id: 'imigrante',
+      label: t('profiles_imigrante_label'),
+      icon: Plane,
+      color: 'bg-emerald-500',
+      description: t('profiles_imigrante_desc'),
+    },
+    {
+      id: 'adulto',
+      label: t('profiles_adulto_label'),
+      icon: Monitor,
+      color: 'bg-orange-500',
+      description: t('profiles_adulto_desc'),
+    },
+    {
+      id: 'jovem_adulto',
+      label: t('profiles_jovem_adulto_label'),
+      icon: GraduationCap,
+      color: 'bg-purple-500',
+      description: t('profiles_jovem_adulto_desc'),
+    },
+  ];
+
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -99,12 +102,12 @@ export default function PerfilPage() {
         .eq('utilizador_id', user.id);
 
       if (progress) {
-        const completed = progress.filter(p => p.completado);
-        const scores = completed.filter(p => p.pontuacao !== null).map(p => p.pontuacao);
+        const completed = progress.filter((p: any) => p.completado);
+        const scores = completed.filter((p: any) => p.pontuacao !== null).map((p: any) => p.pontuacao);
         
         // Favorite Platform
         const platformCounts = new Map<string, number>();
-        completed.forEach(p => {
+        completed.forEach((p: any) => {
           const name = p.tutoriais?.plataformas?.nome || 'Geral';
           platformCounts.set(name, (platformCounts.get(name) || 0) + 1);
         });
@@ -119,10 +122,9 @@ export default function PerfilPage() {
         });
 
         // Unique Platforms
-        const uniquePlatforms = new Set(progress.map(p => p.tutoriais?.plataforma_id)).size;
+        const uniquePlatforms = new Set(progress.map((p: any) => p.tutoriais?.plataforma_id)).size;
 
-        // Streak logic
-        const dates = [...new Set(progress.map(p => new Date(p.data).toDateString()))]
+        const dates = ([...new Set(progress.map((p: any) => new Date(p.data).toDateString()))] as string[])
           .map(d => new Date(d).getTime())
           .sort((a, b) => b - a);
         
@@ -150,7 +152,7 @@ export default function PerfilPage() {
         setStats({
           completedCount: completed.length,
           platformCount: uniquePlatforms,
-          avgScore: scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0,
+          avgScore: scores.length > 0 ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length) : 0,
           streak,
           favoritePlatform: fav,
         });
@@ -232,7 +234,7 @@ export default function PerfilPage() {
             className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-2 font-bold"
           >
             <Check size={20} />
-            Perfil atualizado!
+            {t('profileUpdated')}
           </motion.div>
         )}
       </AnimatePresence>
@@ -259,12 +261,12 @@ export default function PerfilPage() {
               </p>
               
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-wider">
-                {profileData?.perfil || 'Novo Membro'}
+                {profileData?.perfil || t('newMember')}
               </div>
 
               <div className="mt-8 pt-8 border-t border-border flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <Calendar size={14} /> 
-                Membro desde {profileData?.created_at ? new Date(profileData.created_at).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' }) : '---'}
+                <Calendar size={14} />
+                {t('memberSince')} {profileData?.created_at ? new Date(profileData.created_at).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' }) : '---'}
               </div>
             </div>
           </div>
@@ -273,14 +275,14 @@ export default function PerfilPage() {
           <div className="bg-card border border-border rounded-[40px] p-8 shadow-sm">
             <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
               <TrendingUp size={20} className="text-primary" />
-              Estatísticas
+              {t('stats')}
             </h3>
-            
+
             <div className="space-y-6">
-              <StatItem icon={BookOpen} label="Tutoriais Concluídos" value={stats.completedCount} color="text-blue-500" />
-              <StatItem icon={Star} label="Plataforma Favorita" value={stats.favoritePlatform} color="text-emerald-500" isText />
-              <StatItem icon={TrendingUp} label="Pontuação Média" value={`${stats.avgScore}%`} color="text-orange-500" />
-              <StatItem icon={Zap} label="Sequência de Dias" value={`${stats.streak} dias`} color="text-yellow-500" />
+              <StatItem icon={BookOpen} label={t('completedTutorials')} value={stats.completedCount} color="text-blue-500" />
+              <StatItem icon={Star} label={t('favoritePlatform')} value={stats.favoritePlatform} color="text-emerald-500" isText />
+              <StatItem icon={TrendingUp} label={t('avgScore')} value={`${stats.avgScore}%`} color="text-orange-500" />
+              <StatItem icon={Zap} label={t('streakDays')} value={`${stats.streak} ${t('days')}`} color="text-yellow-500" />
             </div>
           </div>
         </div>
@@ -291,8 +293,8 @@ export default function PerfilPage() {
           {/* Profile Switcher */}
           <div className="bg-card border border-border rounded-[40px] p-8 shadow-sm">
             <div className="mb-8">
-              <h3 className="text-2xl font-black mb-2">O Meu Perfil</h3>
-              <p className="text-muted-foreground">Escolhe o perfil que melhor descreve as tuas necessidades atuais.</p>
+              <h3 className="text-2xl font-black mb-2">{t('myProfile')}</h3>
+              <p className="text-muted-foreground">{t('profileDesc')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -332,7 +334,7 @@ export default function PerfilPage() {
                 className="flex items-center gap-2 text-primary hover:text-primary/80 font-bold transition-all"
               >
                 <Zap size={18} className="fill-primary/20" />
-                Refazer inquérito de perfil completo
+                {t('redoOnboarding')}
               </button>
             </div>
           </div>
@@ -343,7 +345,7 @@ export default function PerfilPage() {
             {/* Recent achievements */}
             {earnedBadges.length > 0 && (
               <div className="mb-10">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">Conquistas Recentes</h3>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">{t('recentAchievements')}</h3>
                 <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
                   {earnedBadges.slice(0, 3).map(ub => (
                     <div key={ub.id} className="flex items-center gap-4 bg-accent/50 border border-border rounded-2xl p-4 min-w-[250px]">
@@ -360,7 +362,7 @@ export default function PerfilPage() {
               </div>
             )}
 
-            <h3 className="text-2xl font-black mb-8">Todos os Badges</h3>
+            <h3 className="text-2xl font-black mb-8">{t('allBadges')}</h3>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 text-center">
               {allBadges.map((badge) => {
@@ -392,7 +394,7 @@ export default function PerfilPage() {
                       <p className="opacity-80">{badge.descricao}</p>
                       {!isEarned && (
                         <div className="mt-2 pt-2 border-t border-background/20 flex items-center gap-1 text-[10px] text-yellow-300">
-                          <Info size={12} /> Falta completar
+                          <Info size={12} /> {t('missingComplete')}
                         </div>
                       )}
                     </div>

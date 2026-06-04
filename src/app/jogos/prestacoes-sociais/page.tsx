@@ -1,22 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, RotateCcw, Gamepad2, ArrowLeft, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import confetti from 'canvas-confetti';
+import { createClient } from '@/utils/supabase/client';
 import { registarProgresso } from '@/app/actions/progresso';
-import { useTranslations } from 'next-intl';
 
-// Set NEXT_PUBLIC_JOGO_CORRESPONDENCIA_TUTORIAL_ID in .env.local to enable progress tracking
-const TUTORIAL_ID = process.env.NEXT_PUBLIC_JOGO_CORRESPONDENCIA_TUTORIAL_ID ?? '';
-
-const PARES_ORIGINAIS = [
-  { id: '1', conceito: 'NIF', definicao: 'Número de Identificação Fiscal — necessário para pagar impostos e abrir conta bancária' },
-  { id: '2', conceito: 'NISS', definicao: 'Número de Identificação da Segurança Social — necessário para aceder a prestações sociais' },
-  { id: '3', conceito: 'NNU', definicao: 'Número Nacional de Utente — necessário para aceder ao Serviço Nacional de Saúde' },
-  { id: '4', conceito: 'CMD', definicao: 'Chave Móvel Digital — permite autenticar-se nos portais do Estado com telemóvel' },
-  { id: '5', conceito: 'Cartão de Cidadão', definicao: 'Documento de identificação português que substitui o Bilhete de Identidade' },
+const PARES = [
+  { id: '1', conceito: 'Subsídio de Desemprego',        definicao: 'Apoio financeiro a trabalhadores que perderam o emprego involuntariamente'          },
+  { id: '2', conceito: 'Subsídio de Doença',            definicao: 'Compensação por incapacidade temporária para o trabalho por motivo de saúde'         },
+  { id: '3', conceito: 'Pensão de Velhice',             definicao: 'Prestação mensal atribuída a trabalhadores que atingem a idade da reforma'            },
+  { id: '4', conceito: 'Pensão de Invalidez',           definicao: 'Apoio a trabalhadores com incapacidade permanente para o trabalho'                   },
+  { id: '5', conceito: 'Abono de Família',              definicao: 'Prestação mensal de apoio às famílias com crianças e jovens a cargo'                 },
+  { id: '6', conceito: 'Rendimento Social de Inserção', definicao: 'Apoio a cidadãos em situação de pobreza extrema com programa de inserção social'     },
 ];
 
 function shuffle<T>(arr: T[]): T[] {
@@ -25,50 +23,84 @@ function shuffle<T>(arr: T[]): T[] {
 
 function buildInitialState() {
   return {
-    definicoesBaralhadas: shuffle(PARES_ORIGINAIS),
-    ligacoes: {} as Record<string, string>,
-    corretos: new Set<string>(),
-    erros: new Set<string>(),
-    arrastando: null as string | null,
+    definicoesBaralhadas: shuffle(PARES),
+    ligacoes:    {} as Record<string, string>,
+    corretos:    new Set<string>(),
+    erros:       new Set<string>(),
+    errosPorPar: {} as Record<string, number>,
+    arrastando:  null as string | null,
     selecionado: null as string | null,
-    tentativas: 0,
   };
 }
 
-export default function JogoCorrespondenciaPage() {
-  const t = useTranslations('JogoCorrespondencia');
-  const [estado, setEstado] = useState(buildInitialState);
-  const [celebrado, setCelebrado] = useState(false);
-  const concluido = estado.corretos.size === PARES_ORIGINAIS.length;
+export default function PrestacoesSociaisPage() {
+  const supabase = createClient();
+  const [estado, setEstado]         = useState(buildInitialState);
+  const [celebrado, setCelebrado]   = useState(false);
+  const [tutorialId, setTutorialId] = useState<string | null>(null);
 
+  const concluido = estado.corretos.size === PARES.length;
+
+  // Fetch tutorial ID from DB by conteudo_url
+  useEffect(() => {
+    supabase
+      .from('tutoriais')
+      .select('id')
+      .eq('conteudo_url', '/jogos/prestacoes-sociais')
+      .maybeSingle()
+      .then(({ data }: { data: { id: string } | null }) => { if (data) setTutorialId(data.id); });
+  }, []);
+
+  // Score: 100 pts on 1st attempt, 50 on 2nd, 0 on 3rd+  →  converted to %
+  const pontuacaoRef = useRef(0);
+  const pontuacao = useMemo(() => {
+    let raw = 0;
+    estado.corretos.forEach(id => {
+      const e = estado.errosPorPar[id] ?? 0;
+      if (e === 0) raw += 100;
+      else if (e === 1) raw += 50;
+    });
+    const pct = Math.round((raw / (PARES.length * 100)) * 100);
+    pontuacaoRef.current = pct;
+    return pct;
+  }, [estado.corretos, estado.errosPorPar]);
+
+  // Confetti + save progress on completion
   useEffect(() => {
     if (!concluido || celebrado) return;
     setCelebrado(true);
 
     const end = Date.now() + 3000;
     const frame = () => {
-      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#3B82F6', '#10B981', '#F59E0B'] });
+      confetti({ particleCount: 3, angle: 60,  spread: 55, origin: { x: 0 }, colors: ['#3B82F6', '#10B981', '#F59E0B'] });
       confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#3B82F6', '#10B981', '#F59E0B'] });
       if (Date.now() < end) requestAnimationFrame(frame);
     };
     requestAnimationFrame(frame);
 
-    if (TUTORIAL_ID) {
-      const pontuacao = Math.max(Math.round((PARES_ORIGINAIS.length / Math.max(estado.tentativas, PARES_ORIGINAIS.length)) * 100), 50);
-      registarProgresso(TUTORIAL_ID, pontuacao, true).catch(() => {});
+    if (tutorialId) {
+      registarProgresso(tutorialId, pontuacaoRef.current, true).catch(() => {});
     }
-  }, [concluido, celebrado, estado.tentativas]);
+  }, [concluido, celebrado, tutorialId]);
 
   function handleDrop(conceitoId: string, definicaoId: string) {
     setEstado(prev => {
       if (prev.corretos.has(conceitoId)) return prev;
-      const tentativas = prev.tentativas + 1;
 
       if (conceitoId === definicaoId) {
         const corretos = new Set(prev.corretos).add(conceitoId);
-        return { ...prev, corretos, ligacoes: { ...prev.ligacoes, [conceitoId]: definicaoId }, selecionado: null, tentativas };
+        return {
+          ...prev,
+          corretos,
+          ligacoes: { ...prev.ligacoes, [conceitoId]: definicaoId },
+          selecionado: null,
+        };
       }
 
+      const errosPorPar = {
+        ...prev.errosPorPar,
+        [conceitoId]: (prev.errosPorPar[conceitoId] ?? 0) + 1,
+      };
       const erros = new Set(prev.erros).add(conceitoId);
       setTimeout(() => {
         setEstado(s => {
@@ -77,7 +109,7 @@ export default function JogoCorrespondenciaPage() {
           return { ...s, erros: e };
         });
       }, 600);
-      return { ...prev, erros, selecionado: null, tentativas };
+      return { ...prev, erros, errosPorPar, selecionado: null };
     });
   }
 
@@ -87,14 +119,11 @@ export default function JogoCorrespondenciaPage() {
   }
 
   const definicaoUsadas = new Set(Object.values(estado.ligacoes));
-  const pontuacao = estado.tentativas > 0
-    ? Math.max(Math.round((PARES_ORIGINAIS.length / estado.tentativas) * 100), 50)
-    : 100;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <Link href="/jogos" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8 transition-colors">
-        <ArrowLeft size={16} /> {t('backToGames')}
+        <ArrowLeft size={16} /> Voltar aos Jogos
       </Link>
 
       {/* Title + progress */}
@@ -104,20 +133,20 @@ export default function JogoCorrespondenciaPage() {
             <Gamepad2 size={22} className="text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold">Documentos Portugueses</h1>
-            <p className="text-sm text-muted-foreground">Liga cada sigla à sua definição correta</p>
+            <h1 className="text-2xl font-extrabold">Prestações Sociais</h1>
+            <p className="text-sm text-muted-foreground">Liga cada prestação à sua descrição correta</p>
           </div>
         </div>
         <div className="flex items-center gap-3 mt-6">
           <div className="flex-grow h-2 bg-accent rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-primary rounded-full"
-              animate={{ width: `${(estado.corretos.size / PARES_ORIGINAIS.length) * 100}%` }}
+              animate={{ width: `${(estado.corretos.size / PARES.length) * 100}%` }}
               transition={{ duration: 0.4 }}
             />
           </div>
           <span className="text-sm font-bold text-muted-foreground shrink-0">
-            {estado.corretos.size}/{PARES_ORIGINAIS.length}
+            {estado.corretos.size}/{PARES.length}
           </span>
         </div>
       </div>
@@ -125,16 +154,16 @@ export default function JogoCorrespondenciaPage() {
       {/* Game grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-        {/* Left — Conceitos (drop zones) */}
+        {/* Left — Prestações (drop zones) */}
         <div>
           <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 text-center">
-            {t('concepts')}
+            Prestação
           </h2>
           <div className="space-y-3">
-            {PARES_ORIGINAIS.map(par => {
+            {PARES.map(par => {
               const isCerto = estado.corretos.has(par.id);
-              const isErro = estado.erros.has(par.id);
-              const isAlvo = !!estado.selecionado && !isCerto;
+              const isErro  = estado.erros.has(par.id);
+              const isAlvo  = !!estado.selecionado && !isCerto;
 
               return (
                 <motion.div
@@ -160,7 +189,7 @@ export default function JogoCorrespondenciaPage() {
                     }
                   `}
                 >
-                  <span className={`font-bold text-base ${isCerto ? 'text-green-700 dark:text-green-300' : isErro ? 'text-red-700 dark:text-red-300' : 'text-white'}`}>
+                  <span className={`font-bold text-sm ${isCerto ? 'text-green-700 dark:text-green-300' : isErro ? 'text-red-700 dark:text-red-300' : 'text-white'}`}>
                     {par.conceito}
                   </span>
                   {isCerto
@@ -173,15 +202,15 @@ export default function JogoCorrespondenciaPage() {
           </div>
         </div>
 
-        {/* Right — Definições (draggable) */}
+        {/* Right — Descrições (draggable) */}
         <div>
           <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 text-center">
-            {t('definitions')} <span className="hidden md:inline">— {t('dragHint')}</span>
+            Descrição <span className="hidden md:inline">— arrasta para a prestação</span>
           </h2>
           <div className="space-y-3">
             {estado.definicoesBaralhadas.map(par => {
-              const isUsada = definicaoUsadas.has(par.id);
-              const isArrastando = estado.arrastando === par.id;
+              const isUsada       = definicaoUsadas.has(par.id);
+              const isArrastando  = estado.arrastando === par.id;
               const isSelecionada = estado.selecionado === par.id;
 
               if (isUsada) {
@@ -219,7 +248,7 @@ export default function JogoCorrespondenciaPage() {
             })}
           </div>
           <p className="text-xs text-muted-foreground text-center mt-4 md:hidden">
-            {t('clickHint')}
+            Toca numa descrição para a selecionar, depois toca na prestação correspondente.
           </p>
         </div>
       </div>
@@ -245,16 +274,14 @@ export default function JogoCorrespondenciaPage() {
                 <Trophy size={48} />
               </motion.div>
 
-              <h2 className="text-3xl font-black mb-2">{t('completedTitle')}</h2>
-              <p className="text-muted-foreground mb-6">
-                {t('completedSubtitle')}
-              </p>
+              <h2 className="text-3xl font-black mb-2">Excelente! 🎉</h2>
+              <p className="text-muted-foreground mb-6">Conheces bem as prestações da Segurança Social!</p>
 
               <div className="bg-primary/5 rounded-2xl p-6 mb-8 border border-primary/10">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-1">{t('score')}</p>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-1">Pontuação</p>
                 <p className="text-5xl font-black text-primary">{pontuacao}%</p>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {PARES_ORIGINAIS.length} {t('pairs')} {estado.tentativas} {estado.tentativas !== 1 ? t('attempts') : t('attempt')}
+                  {PARES.length} pares concluídos
                 </p>
               </div>
 
@@ -263,10 +290,10 @@ export default function JogoCorrespondenciaPage() {
                   onClick={handleReset}
                   className="flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold bg-accent hover:bg-accent/80 transition-colors"
                 >
-                  <RotateCcw size={16} /> {t('playAgain')}
+                  <RotateCcw size={16} /> Jogar de Novo
                 </button>
                 <Link href="/jogos" className="btn-primary flex items-center justify-center gap-2 py-3 text-sm">
-                  {t('otherGames')}
+                  Outros Jogos
                 </Link>
               </div>
             </motion.div>

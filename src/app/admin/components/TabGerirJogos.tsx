@@ -54,6 +54,7 @@ export default function TabGerirJogos() {
               <th className="px-4 py-4">Plataforma</th>
               <th className="px-4 py-4">Nível</th>
               <th className="px-4 py-4">Duração</th>
+              <th className="px-4 py-4">★ Avaliação</th>
               <th className="px-4 py-4">URL</th>
               <th className="px-4 py-4 text-right">Ações</th>
             </tr>
@@ -91,6 +92,16 @@ export default function TabGerirJogos() {
                 </td>
                 <td className="px-4 py-4 capitalize text-sm">{j.nivel}</td>
                 <td className="px-4 py-4 text-sm text-muted-foreground">{j.duracao_min} min</td>
+                <td className="px-4 py-4 text-sm">
+                  {j.total_avaliacoes > 0 ? (
+                    <span className="text-amber-500 font-semibold">
+                      ★ {Number(j.avaliacao_media).toFixed(1)}{' '}
+                      <span className="text-muted-foreground font-normal text-xs">({j.total_avaliacoes})</span>
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">—</span>
+                  )}
+                </td>
                 <td className="px-4 py-4">
                   {j.conteudo_url ? (
                     <a

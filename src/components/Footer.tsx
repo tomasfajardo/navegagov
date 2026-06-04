@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Building2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 const PLATAFORMAS = [
   { nome: 'Segurança Social Direta', url: 'https://www.seg-social.pt' },
@@ -9,14 +10,6 @@ const PLATAFORMAS = [
   { nome: 'SNS24', url: 'https://www.sns24.gov.pt' },
   { nome: 'Autenticação.gov', url: 'https://www.autenticacao.gov.pt' },
   { nome: 'IRN', url: 'https://irn.justica.gov.pt' },
-];
-
-const NAVEGACAO = [
-  { nome: 'Início', href: '/' },
-  { nome: 'Tutoriais', href: '/tutoriais' },
-  { nome: 'Quizzes', href: '/quizzes' },
-  { nome: 'Apoio ao Imigrante', href: '/apoio-imigrante' },
-  { nome: 'O Meu Progresso', href: '/progresso' },
 ];
 
 const PARCEIROS = [
@@ -27,6 +20,16 @@ const PARCEIROS = [
 ];
 
 export default function Footer() {
+  const t = useTranslations('Footer');
+
+  const NAVEGACAO = [
+    { nome: t('home'), href: '/' },
+    { nome: t('tutorials'), href: '/tutoriais' },
+    { nome: t('quizzes'), href: '/quizzes' },
+    { nome: t('support'), href: '/apoio-imigrante' },
+    { nome: t('progress'), href: '/progresso' },
+  ];
+
   return (
     <footer style={{ backgroundColor: '#0A0F2C' }} className="mt-20 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
@@ -41,17 +44,17 @@ export default function Footer() {
               <span className="font-extrabold text-lg tracking-tight">NavegaGov</span>
             </div>
             <p className="text-sm leading-relaxed" style={{ color: '#F0F4FF', opacity: 0.85 }}>
-              Literacia digital para todos os cidadãos portugueses.
+              {t('tagline')}
             </p>
             <p className="text-xs leading-relaxed" style={{ color: '#F0F4FF', opacity: 0.5 }}>
-              Uma iniciativa de apoio à inclusão digital em Portugal.
+              {t('initiative')}
             </p>
           </div>
 
           {/* Coluna 2 — Plataformas */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest mb-5" style={{ color: '#F0F4FF', opacity: 0.6 }}>
-              Plataformas
+              {t('platforms')}
             </h4>
             <ul className="space-y-3">
               {PLATAFORMAS.map((p) => (
@@ -75,7 +78,7 @@ export default function Footer() {
           {/* Coluna 3 — Navegação */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest mb-5" style={{ color: '#F0F4FF', opacity: 0.6 }}>
-              Navegação
+              {t('navigation')}
             </h4>
             <ul className="space-y-3">
               {NAVEGACAO.map((n) => (
@@ -97,7 +100,7 @@ export default function Footer() {
           {/* Coluna 4 — Parcerias */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest mb-5" style={{ color: '#F0F4FF', opacity: 0.6 }}>
-              Em parceria com
+              {t('partners')}
             </h4>
             <ul className="space-y-3">
               {PARCEIROS.map((parceiro) => (
@@ -121,10 +124,10 @@ export default function Footer() {
           style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
         >
           <p className="text-xs" style={{ color: '#F0F4FF', opacity: 0.5 }}>
-            © {new Date().getFullYear()} NavegaGov. Todos os direitos reservados.
+            © {new Date().getFullYear()} NavegaGov. {t('copyright')}
           </p>
           <p className="text-xs" style={{ color: '#F0F4FF', opacity: 0.5 }}>
-            Desenvolvido no âmbito da UC TSIG — Universidade de Aveiro
+            {t('developedBy')}
           </p>
         </div>
       </div>

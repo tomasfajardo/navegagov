@@ -22,7 +22,7 @@ export default function TabGerirQuizzes() {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data: tData } = await supabase.from('tutoriais').select('id, titulo').eq('tipo', 'questionario');
+    const { data: tData } = await supabase.from('tutoriais').select('id, titulo, avaliacao_media, total_avaliacoes').eq('tipo', 'questionario');
     const { data: qData } = await supabase.from('quizzes').select('*, tutoriais(titulo)');
     
     if (tData) {
@@ -168,6 +168,25 @@ export default function TabGerirQuizzes() {
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <HelpCircle size={20} className="text-primary" /> Perguntas Existentes
         </h3>
+
+        {tutoriais.length > 0 && (
+          <div className="glass p-4 rounded-2xl border-border/50 space-y-2">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Avaliações por Questionário</p>
+            {tutoriais.map((tut: any) => (
+              <div key={tut.id} className="flex items-center justify-between text-sm">
+                <span className="truncate max-w-[240px] text-muted-foreground">{tut.titulo}</span>
+                {tut.total_avaliacoes > 0 ? (
+                  <span className="text-amber-500 font-semibold shrink-0 ml-2">
+                    ★ {Number(tut.avaliacao_media).toFixed(1)}{' '}
+                    <span className="text-muted-foreground font-normal text-xs">({tut.total_avaliacoes})</span>
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground text-xs shrink-0 ml-2">sem avaliações</span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
         <div className="space-y-4">
           {quizzes.map(q => (
             <div key={q.id} className="glass p-5 rounded-2xl border-border/50 group">

@@ -12,6 +12,8 @@ import { useRouter } from 'next/navigation';
 import { registarProgresso } from '@/app/actions/progresso';
 import SimulacaoFormulario from '@/components/jogos/SimulacaoFormulario';
 import JogoCorrespondencia from '@/components/jogos/JogoCorrespondencia';
+import StarRating from '@/components/StarRating';
+import { useTranslations } from 'next-intl';
 
 interface Quiz {
   id: string;
@@ -34,6 +36,7 @@ interface Tutorial {
 }
 
 export default function TutorialDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const t = useTranslations('TutorialDetalhe');
   const { id } = React.use(params);
   const [tutorial, setTutorial] = useState<Tutorial | null>(null);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
@@ -158,7 +161,11 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
     console.log('5. Resultado insert:', { data, error })
 
     if (error) {
-      console.error('Erro ao guardar progresso:', error)
+      console.error('Erro ao guardar progresso:', JSON.stringify(error, null, 2))
+      console.error('  message:', error.message)
+      console.error('  code:', error.code)
+      console.error('  details:', error.details)
+      console.error('  hint:', error.hint)
     } else {
       console.log('Progresso guardado com sucesso!')
     }
@@ -270,7 +277,7 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8 transition-colors"
       >
         <ArrowLeft size={16} />
-        {tutorial.tipo === 'questionario' ? 'Voltar aos Questionários' : tutorial.tipo === 'jogo' ? 'Voltar aos Jogos' : 'Voltar à Galeria'}
+        {tutorial.tipo === 'questionario' ? t('backToQuizzes') : tutorial.tipo === 'jogo' ? t('backToGames') : t('backToGallery')}
       </Link>
 
       {/* Header */}
@@ -302,14 +309,14 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
           ) : (
             <video controls className="w-full rounded-lg mb-8 shadow-2xl">
               <source src={tutorial.conteudo_url} type="video/mp4" />
-              O seu navegador não suporta a reprodução de vídeos.
+              {t('videoNotSupported')}
             </video>
           )}
           <div className="flex justify-end">
             {jaConcluido ? (
               <div className="flex items-center gap-2 px-6 py-3 rounded-full bg-green-100 text-green-700 font-bold border border-green-200 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300">
                 <CheckCircle size={20} />
-                Tutorial já concluído
+                {t('alreadyCompleted')}
               </div>
             ) : (
               <button
@@ -318,9 +325,12 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
                 className="btn-primary flex items-center gap-2"
               >
                 <CheckCircle size={20} />
-                {isSaving ? 'A guardar...' : 'Marcar como Concluído'}
+                {isSaving ? t('saving') : t('markCompleted')}
               </button>
             )}
+          </div>
+          <div className="mt-6 flex justify-end">
+            <StarRating conteudoId={id} tipoConteudo="tutorial" />
           </div>
         </div>
       )}
@@ -341,12 +351,12 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold bg-accent hover:bg-accent/80 transition-colors"
             >
-              <FileText size={18} /> Descarregar PDF
+              <FileText size={18} /> {t('downloadPdf')}
             </a>
             {jaConcluido ? (
               <div className="flex items-center gap-2 px-6 py-3 rounded-full bg-green-100 text-green-700 font-bold border border-green-200 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300">
                 <CheckCircle size={20} />
-                Tutorial já concluído
+                {t('alreadyCompleted')}
               </div>
             ) : (
               <button
@@ -355,9 +365,12 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
                 className="btn-primary flex items-center gap-2"
               >
                 <CheckCircle size={20} />
-                {isSaving ? 'A guardar...' : 'Marcar como Concluído'}
+                {isSaving ? t('saving') : t('markCompleted')}
               </button>
             )}
+          </div>
+          <div className="mt-6 flex justify-end">
+            <StarRating conteudoId={id} tipoConteudo="tutorial" />
           </div>
         </div>
       )}
@@ -367,7 +380,7 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
           {quizzes.length === 0 ? (
             <div className="text-center py-16 bg-accent rounded-3xl">
               <Gamepad2 size={48} className="mx-auto mb-4 opacity-20" />
-              <p className="text-muted-foreground">Nenhuma pergunta disponível para este tutorial.</p>
+              <p className="text-muted-foreground">{t('noQuestions')}</p>
             </div>
           ) : finished ? (
             /* Score screen */
@@ -378,21 +391,24 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
             >
               <div className="text-6xl mb-4">{passed ? '🏆' : '📚'}</div>
               <h2 className="text-3xl font-extrabold mb-2">
-                {passed ? 'Parabéns! Passaste!' : 'Continua a tentar!'}
+                {passed ? t('quizPassed') : t('quizFailed')}
               </h2>
               <p className="text-6xl font-black my-6 text-primary">{pct}%</p>
               <p className="text-muted-foreground mb-8">
-                Acertaste em <strong>{score}</strong> de <strong>{quizzes.length}</strong> perguntas.
+                {t('youGot')} <strong>{score}</strong> {t('of')} <strong>{quizzes.length}</strong> {t('questions')}
               </p>
-              
+
               {!passed && (
                 <button
                   onClick={() => { setCurrentQ(0); setScore(0); setSelected(null); setAnswered(false); setFinished(false); }}
                   className="btn-primary mx-auto block"
                 >
-                  Tentar Novamente
+                  {t('tryAgain')}
                 </button>
               )}
+              <div className="mt-8 flex justify-center">
+                <StarRating conteudoId={id} tipoConteudo="quiz" />
+              </div>
             </motion.div>
           ) : (
             /* Quiz card */
@@ -401,7 +417,7 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
               <div className="flex items-center gap-2 p-4 rounded-2xl bg-green-50 border border-green-200 text-green-700 dark:bg-green-950/30 dark:border-green-800 dark:text-green-300 mb-6">
                 <CheckCircle size={18} className="shrink-0" />
                 <span>
-                  Já completaste este quiz{pontuacaoAnterior !== null ? ` com ${pontuacaoAnterior}%` : ''}. Podes repetir para melhorar a pontuação.
+                  {t('alreadyCompletedQuiz')}{pontuacaoAnterior !== null ? ` ${t('withScore')} ${pontuacaoAnterior}%` : ''}{t('canRepeat')}
                 </span>
               </div>
             )}
@@ -457,7 +473,7 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
                 {answered && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                     <button onClick={nextQuestion} disabled={isSaving} className="btn-primary w-full flex justify-center">
-                      {isSaving ? 'A guardar...' : (currentQ < quizzes.length - 1 ? 'Próxima Pergunta →' : 'Ver Resultado')}
+                      {isSaving ? t('saving') : (currentQ < quizzes.length - 1 ? t('nextQuestion') : t('viewResult'))}
                     </button>
                   </motion.div>
                 )}
@@ -474,7 +490,7 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
             <div className="flex items-center gap-2 p-4 rounded-2xl bg-green-50 border border-green-200 text-green-700 dark:bg-green-950/30 dark:border-green-800 dark:text-green-300 mb-6">
               <CheckCircle size={18} className="shrink-0" />
               <span>
-                Já completaste este jogo{pontuacaoAnterior !== null ? ` com ${pontuacaoAnterior}%` : ''}. Podes repetir.
+                {t('alreadyCompletedGame')}{pontuacaoAnterior !== null ? ` ${t('withScore')} ${pontuacaoAnterior}%` : ''}{t('canRepeatGame')}
               </span>
             </div>
           )}
@@ -517,14 +533,14 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
                 <Trophy size={48} />
               </motion.div>
               
-              <h2 className="text-4xl font-black mb-2">Parabéns! 🎉</h2>
+              <h2 className="text-4xl font-black mb-2">{t('congratsTitle')}</h2>
               <p className="text-xl text-muted-foreground mb-6">
-                Completaste <span className="font-bold text-foreground">{tutorial.titulo}</span>!
+                {t('completedText')} <span className="font-bold text-foreground">{tutorial.titulo}</span>!
               </p>
-              
+
               {(tutorial.tipo === 'questionario' || tutorial.tipo === 'jogo') && (
                 <div className="bg-primary/5 rounded-2xl p-6 mb-8 border border-primary/10">
-                  <p className="text-sm uppercase tracking-widest text-muted-foreground font-bold mb-1">Pontuação Final</p>
+                  <p className="text-sm uppercase tracking-widest text-muted-foreground font-bold mb-1">{t('finalScore')}</p>
                   <p className="text-5xl font-black text-primary">
                     {tutorial.tipo === 'questionario' ? pct : pontuacaoJogoNovo}%
                   </p>
@@ -533,7 +549,7 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
 
               {earnedBadges.length > 0 && (
                 <div className="mb-8">
-                  <h3 className="text-sm uppercase tracking-widest text-muted-foreground font-bold mb-4">Novas Conquistas Desbloqueadas!</h3>
+                  <h3 className="text-sm uppercase tracking-widest text-muted-foreground font-bold mb-4">{t('newAchievements')}</h3>
                   <div className="flex flex-wrap gap-4 justify-center">
                     {earnedBadges.map((b, i) => (
                       <motion.div 
@@ -551,21 +567,27 @@ export default function TutorialDetailPage({ params }: { params: Promise<{ id: s
                 </div>
               )}
 
+              {tutorial.tipo === 'jogo' && (
+                <div className="mb-6 flex justify-center">
+                  <StarRating conteudoId={id} tipoConteudo="jogo" />
+                </div>
+              )}
+
               <div className="grid grid-cols-1 gap-3">
-                <button 
+                <button
                   onClick={() => router.push('/progresso')}
                   className="btn-primary py-4 text-lg flex items-center justify-center gap-2"
                 >
-                  <Sparkles size={20} /> Ver o meu progresso
+                  <Sparkles size={20} /> {t('viewProgress')}
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     setFinished(false);
                     router.push('/tutoriais');
                   }}
                   className="px-6 py-4 rounded-full font-bold hover:bg-accent transition-colors"
                 >
-                  Continuar a explorar
+                  {t('continueExploring')}
                 </button>
               </div>
             </motion.div>

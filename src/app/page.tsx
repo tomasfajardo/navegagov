@@ -3,8 +3,11 @@
 import Link from 'next/link';
 import { BookOpen, Calculator, UserPlus, ArrowRight, ShieldCheck, Zap, Globe, HelpCircle, User, Plane, Monitor, GraduationCap } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 export default function Home() {
+  const t = useTranslations('Home');
+
   return (
     <div className="flex flex-col gap-20 pb-20">
       {/* Hero Section */}
@@ -18,9 +21,9 @@ export default function Home() {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">
-              Domina os <br />
+              {t('title1')} <br />
               <span className="relative inline-block mt-2">
-                <span className="relative z-10 text-primary">Serviços Públicos Digitais</span>
+                <span className="relative z-10 text-primary">{t('title2')}</span>
                 <motion.span 
                   initial={{ width: 0 }}
                   animate={{ width: "100%" }}
@@ -30,14 +33,14 @@ export default function Home() {
               </span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-              Aprende a navegar no Portal das Finanças, Segurança Social e muito mais com tutoriais simples, simuladores e ajuda inteligente.
+              {t('description')}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/tutoriais" className="btn-primary">
-                Começar a Aprender
+                {t('getStarted')}
               </Link>
               <Link href="/progresso" className="px-6 py-3 rounded-full font-semibold border border-border hover:bg-accent transition-colors">
-                Ver o Meu Progresso
+                {t('viewProgress')}
               </Link>
             </div>
           </motion.div>
@@ -47,45 +50,49 @@ export default function Home() {
       {/* Profile Selection Cards */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Escolhe o teu perfil</h2>
-          <p className="text-muted-foreground">Conteúdo personalizado para as tuas necessidades.</p>
+          <h2 className="text-3xl font-bold mb-4">{t('chooseProfile')}</h2>
+          <p className="text-muted-foreground">{t('profileSub')}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <ProfileCard 
             index={0}
             icon={<User size={32} />}
-            title="Idoso"
-            description="Quero aprender a usar os serviços digitais do Estado com calma."
+            title={t('idoso')}
+            description={t('idosoDesc')}
             color="#4F46E5"
             bgColor="#EEF2FF"
             link="/tutoriais"
+            exploreText={t('explore')}
           />
           <ProfileCard 
             index={1}
             icon={<Plane size={32} />}
-            title="Imigrante"
-            description="Sou novo em Portugal e preciso de ajuda com toda a documentação."
+            title={t('imigrante')}
+            description={t('imigranteDesc')}
             color="#059669"
             bgColor="#ECFDF5"
             link="/tutoriais"
+            exploreText={t('explore')}
           />
           <ProfileCard 
             index={2}
             icon={<Monitor size={32} />}
-            title="Adulto"
-            description="Tenho algumas dificuldades mas quero tornar-me independente."
+            title={t('adulto')}
+            description={t('adultoDesc')}
             color="#EA580C"
             bgColor="#FFF7ED"
             link="/tutoriais"
+            exploreText={t('explore')}
           />
           <ProfileCard 
             index={3}
             icon={<GraduationCap size={32} />}
-            title="Jovem"
-            description="Quero aprender a gerir os meus impostos e serviços públicos."
+            title={t('jovem')}
+            description={t('jovemDesc')}
             color="#9333EA"
             bgColor="#FAF5FF"
             link="/tutoriais"
+            exploreText={t('explore')}
           />
         </div>
       </section>
@@ -95,27 +102,31 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <FeatureCard 
             icon={<BookOpen className="text-primary" size={32} />}
-            title="Galeria de Tutoriais"
-            description="Guias passo-a-passo para renovar o CC, pedir subsídios ou validar faturas."
+            title={t('galleryTitle')}
+            description={t('galleryDesc')}
             link="/tutoriais"
+            learnMoreText={t('learnMore')}
           />
           <FeatureCard 
             icon={<HelpCircle className="text-primary" size={32} />}
-            title="Quizzes Interativos"
-            description="Testa o teu conhecimento sobre os serviços públicos e ganha badges."
+            title={t('quizzesTitle')}
+            description={t('quizzesDesc')}
             link="/quizzes"
+            learnMoreText={t('learnMore')}
           />
           <FeatureCard 
             icon={<Calculator className="text-secondary" size={32} />}
-            title="Simulador de IRS"
-            description="Calcula uma estimativa do teu imposto de forma simples e rápida."
+            title={t('irsTitle')}
+            description={t('irsDesc')}
             link="/simulador-irs"
+            learnMoreText={t('learnMore')}
           />
           <FeatureCard 
             icon={<UserPlus className="text-primary" size={32} />}
-            title="Apoio ao Imigrante"
-            description="Recursos essenciais para quem acaba de chegar a Portugal."
+            title={t('imigranteTitle')}
+            description={t('imigranteDesc2')}
             link="/apoio-imigrante"
+            learnMoreText={t('learnMore')}
           />
         </div>
       </section>
@@ -124,29 +135,29 @@ export default function Home() {
       <section className="bg-accent/50 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold">Porquê usar a NavegaGov?</h2>
+            <h2 className="text-3xl font-bold">{t('whyTitle')}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
             <div className="space-y-4">
               <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl shadow-lg flex items-center justify-center mx-auto text-primary">
                 <ShieldCheck size={32} />
               </div>
-              <h3 className="font-bold text-xl">Seguro e Confiável</h3>
-              <p className="text-sm text-muted-foreground">Informação atualizada com base nos portais governamentais oficiais.</p>
+              <h3 className="font-bold text-xl">{t('secure')}</h3>
+              <p className="text-sm text-muted-foreground">{t('secureDesc')}</p>
             </div>
             <div className="space-y-4">
               <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl shadow-lg flex items-center justify-center mx-auto text-secondary">
                 <Zap size={32} />
               </div>
-              <h3 className="font-bold text-xl">Rápido e Simples</h3>
-              <p className="text-sm text-muted-foreground">Evita filas e burocracia excessiva com guias diretos ao assunto.</p>
+              <h3 className="font-bold text-xl">{t('fast')}</h3>
+              <p className="text-sm text-muted-foreground">{t('fastDesc')}</p>
             </div>
             <div className="space-y-4">
               <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl shadow-lg flex items-center justify-center mx-auto text-primary">
                 <Globe size={32} />
               </div>
-              <h3 className="font-bold text-xl">Para Todos</h3>
-              <p className="text-sm text-muted-foreground">Interface acessível para idosos, imigrantes e jovens adultos.</p>
+              <h3 className="font-bold text-xl">{t('forAll')}</h3>
+              <p className="text-sm text-muted-foreground">{t('forAllDesc')}</p>
             </div>
           </div>
         </div>
@@ -155,7 +166,7 @@ export default function Home() {
   );
 }
 
-function ProfileCard({ index, icon, title, description, color, bgColor, link }: { index: number, icon: React.ReactNode, title: string, description: string, color: string, bgColor: string, link: string }) {
+function ProfileCard({ index, icon, title, description, color, bgColor, link, exploreText }: { index: number, icon: React.ReactNode, title: string, description: string, color: string, bgColor: string, link: string, exploreText: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -184,7 +195,7 @@ function ProfileCard({ index, icon, title, description, color, bgColor, link }: 
           <p className="text-muted-foreground text-sm leading-relaxed mb-6">{description}</p>
           
           <div className="flex items-center gap-2 font-bold text-sm" style={{ color }}>
-            Explorar <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
+            {exploreText} <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
           </div>
         </motion.div>
       </Link>
@@ -192,14 +203,14 @@ function ProfileCard({ index, icon, title, description, color, bgColor, link }: 
   );
 }
 
-function FeatureCard({ icon, title, description, link }: { icon: React.ReactNode, title: string, description: string, link: string }) {
+function FeatureCard({ icon, title, description, link, learnMoreText }: { icon: React.ReactNode, title: string, description: string, link: string, learnMoreText: string }) {
   return (
     <Link href={link} className="card-hover group p-8">
       <div className="mb-6">{icon}</div>
       <h3 className="text-2xl font-bold mb-4">{title}</h3>
       <p className="text-muted-foreground mb-6 text-sm">{description}</p>
       <div className="flex items-center gap-2 text-primary font-semibold group-hover:gap-4 transition-all text-sm">
-        Saber mais <ArrowRight size={20} />
+        {learnMoreText} <ArrowRight size={20} />
       </div>
     </Link>
   );

@@ -48,7 +48,11 @@ export async function registarProgresso(tutorialId: string, pontuacao: number | 
     });
 
   if (error) {
-    console.error('Error saving progress:', error);
+    console.error('Error saving progress:', JSON.stringify(error, null, 2));
+    console.error('  message:', error.message);
+    console.error('  code:', error.code);
+    console.error('  details:', error.details);
+    console.error('  hint:', error.hint);
     return { success: false, error };
   }
 

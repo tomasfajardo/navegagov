@@ -7,25 +7,51 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 const navItems = [
-  { name: 'Início', href: '/', icon: Home },
-  { name: 'Tutoriais', href: '/tutoriais', icon: BookOpen },
-  { name: 'Questionários', href: '/questionarios', icon: HelpCircle },
-  { name: 'Jogos', href: '/jogos', icon: Gamepad2 },
-  { name: 'Simulador IRS', href: '/simulador-irs', icon: Calculator },
-  { name: 'Apoio Imigrante', href: '/apoio-imigrante', icon: UserPlus },
-  { name: 'Progresso', href: '/progresso', icon: BarChart2 },
+  { name: 'Início', href: '/', icon: Home, key: 'home' },
+  { name: 'Tutoriais', href: '/tutoriais', icon: BookOpen, key: 'tutorials' },
+  { name: 'Questionários', href: '/questionarios', icon: HelpCircle, key: 'quizzes' },
+  { name: 'Jogos', href: '/jogos', icon: Gamepad2, key: 'games' },
+  { name: 'Simulador IRS', href: '/simulador-irs', icon: Calculator, key: 'irs' },
+  { name: 'Apoio Imigrante', href: '/apoio-imigrante', icon: UserPlus, key: 'immigrant' },
+  { name: 'Progresso', href: '/progresso', icon: BarChart2, key: 'progress' },
+];
+
+const languages = [
+  { code: 'pt', name: 'PT', flag: '🇵🇹' },
+  { code: 'en', name: 'EN', flag: '🇬🇧' },
 ];
 
 export default function Navbar() {
+  const t = useTranslations('Navbar');
+  const tAccess = useTranslations('Acessibilidade');
+  
   const [isOpen, setIsOpen] = useState(false);
   const [isAccessOpen, setIsAccessOpen] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  const [activeLocale, setActiveLocale] = useState('pt');
   const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const { preferencias, setTamanho, toggleContraste, toggleEspacamento, isAtivo } = useAcessibilidade();
   const supabase = createClient();
   const router = useRouter();
+
+  useEffect(() => {
+    // Read locale from NEXT_LOCALE cookie or default
+    const match = document.cookie.match(new RegExp('(^| )NEXT_LOCALE=([^;]+)'));
+    if (match) {
+      setActiveLocale(match[2]);
+    }
+  }, []);
+
+  const changeLanguage = (langCode: string) => {
+    document.cookie = `NEXT_LOCALE=${langCode}; path=/; max-age=31536000`;
+    setActiveLocale(langCode);
+    setIsLangOpen(false);
+    router.refresh();
+  };
 
   useEffect(() => {
     const fetchProfile = async (userId: string) => {
@@ -37,12 +63,13 @@ export default function Navbar() {
       setProfile(data);
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then((res: any) => {
+      const session = res.data?.session;
       setSession(session);
       if (session) fetchProfile(session.user.id);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setSession(session);
       if (session) {
         fetchProfile(session.user.id);
@@ -103,15 +130,15 @@ export default function Navbar() {
                     className="flex px-3 sm:px-5 py-2 bg-[#3B82F6] text-white rounded-full text-sm font-bold items-center gap-2 hover:bg-[#60A5FA] transition-all shadow-lg shadow-[#3B82F6]/20"
                   >
                     <User size={16} />
-                    <span className="hidden sm:inline">{profile?.perfil === 'admin' ? 'Painel Admin' : 'Perfil'}</span>
+                    <span className="hidden sm:inline">{profile?.perfil === 'admin' ? t('admin') : t('profile')}</span>
                   </Link>
                   <button
                     onClick={handleLogout}
                     className="flex p-2 sm:px-4 sm:py-2 border border-white/20 bg-transparent text-white hover:bg-white/10 rounded-full transition-all items-center gap-2"
-                    title="Sair"
+                    title={t('logout')}
                   >
                     <LogOut size={16} />
-                    <span className="hidden sm:inline text-sm font-medium">Sair</span>
+                    <span className="hidden sm:inline text-sm font-medium">{t('logout')}</span>
                   </button>
                 </>
               ) : (
@@ -120,16 +147,69 @@ export default function Navbar() {
                   className="flex px-3 sm:px-5 py-2 bg-[#3B82F6] text-white rounded-full text-sm font-bold items-center gap-2 hover:bg-[#60A5FA] transition-all shadow-lg shadow-[#3B82F6]/20"
                 >
                   <LogIn size={16} />
-                  <span className="hidden sm:inline">Entrar</span>
+                  <span className="hidden sm:inline">{t('login')}</span>
                 </Link>
               )}
+
+              {/* Language Selector Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsLangOpen(!isLangOpen)}
+                  className="flex items-center gap-1.5 px-3 py-2 border border-white/20 hover:bg-white/10 rounded-full transition-all text-sm font-bold bg-[#0A0F2C]"
+                  title="Alterar Idioma / Change Language"
+                >
+                  <span>{languages.find(l => l.code === activeLocale)?.flag}</span>
+                  <span className="uppercase text-[#F0F4FF]">{activeLocale}</span>
+                  <motion.span
+                    animate={{ rotate: isLangOpen ? 180 : 0 }}
+                    className="text-[10px] opacity-60"
+                  >
+                    ▼
+                  </motion.span>
+                </button>
+
+                <AnimatePresence>
+                  {isLangOpen && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setIsLangOpen(false)} 
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute right-0 mt-2 w-32 bg-[#0A0F2C] border border-white/10 rounded-2xl shadow-2xl z-50 p-1.5 overflow-hidden"
+                      >
+                        {languages.map((lang) => (
+                          <button
+                            key={lang.code}
+                            onClick={() => changeLanguage(lang.code)}
+                            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-bold rounded-xl transition-all ${
+                              activeLocale === lang.code 
+                              ? 'bg-[#3B82F6] text-white' 
+                              : 'text-white/80 hover:bg-white/10 hover:text-white'
+                            }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span>{lang.flag}</span>
+                              <span>{lang.name}</span>
+                            </span>
+                            {activeLocale === lang.code && <Check size={14} />}
+                          </button>
+                        ))}
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
               
               {/* Accessibility Button */}
               <div className="relative">
                 <button
                   onClick={() => setIsAccessOpen(!isAccessOpen)}
                   className={`relative text-white p-2 focus:outline-none hover:bg-white/10 rounded-full transition-colors ${isAtivo ? 'bg-[#3B82F6]/20' : ''}`}
-                  title="Acessibilidade"
+                  title={tAccess('title')}
                 >
                   <SlidersHorizontal size={24} />
                   {isAtivo && (
@@ -152,32 +232,32 @@ export default function Navbar() {
                       >
                         <h4 className="text-[var(--foreground)] font-black text-lg mb-6 flex items-center gap-2">
                           <SlidersHorizontal size={20} className="text-primary" />
-                          Acessibilidade
+                          {tAccess('title')}
                         </h4>
 
                         <div className="space-y-8">
                           {/* Text Size */}
                           <div className="space-y-3">
                             <label className="text-xs font-bold uppercase tracking-wider text-[var(--foreground)] opacity-70 flex items-center gap-2">
-                              <Type size={14} /> Tamanho do Texto
+                              <Type size={14} /> {tAccess('fontSize')}
                             </label>
                             <div className="flex gap-2">
                               {[
-                                { id: 'normal', label: 'A', title: 'Normal' },
-                                { id: 'grande', label: 'A+', title: 'Grande' },
-                                { id: 'muito-grande', label: 'A++', title: 'Muito Grande' }
-                              ].map((t) => (
+                                { id: 'normal', label: 'A', title: tAccess('normal') },
+                                { id: 'grande', label: 'A+', title: tAccess('large') },
+                                { id: 'muito-grande', label: 'A++', title: tAccess('extraLarge') }
+                              ].map((tItem) => (
                                 <button
-                                  key={t.id}
-                                  onClick={() => setTamanho(t.id as any)}
+                                  key={tItem.id}
+                                  onClick={() => setTamanho(tItem.id as any)}
                                   className={`flex-1 py-2 rounded-xl font-bold transition-all border-2 ${
-                                    preferencias.tamanho === t.id 
+                                    preferencias.tamanho === tItem.id 
                                     ? 'bg-primary border-primary text-white' 
                                     : 'bg-[var(--accent)] border-transparent text-[var(--foreground)] hover:border-primary/30'
                                   }`}
-                                  title={t.title}
+                                  title={tItem.title}
                                 >
-                                  {t.label}
+                                  {tItem.label}
                                 </button>
                               ))}
                             </div>
@@ -187,7 +267,7 @@ export default function Navbar() {
                           <div className="flex items-center justify-between">
                             <label className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2">
                               <SunMoon size={18} className="text-primary" />
-                              Alto Contraste
+                              {tAccess('highContrast')}
                             </label>
                             <button
                               onClick={toggleContraste}
@@ -206,7 +286,7 @@ export default function Navbar() {
                           <div className="flex items-center justify-between">
                             <label className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2">
                               <MoveVertical size={18} className="text-primary" />
-                              Espaçamento
+                              {tAccess('spacing')}
                             </label>
                             <button
                               onClick={toggleEspacamento}
@@ -289,7 +369,7 @@ export default function Navbar() {
                       onClick={() => setIsOpen(false)}
                     >
                       <item.icon size={20} />
-                      {item.name}
+                      {t(item.key)}
                     </Link>
                   ))}
                   
@@ -304,7 +384,7 @@ export default function Navbar() {
                         onClick={() => setIsOpen(false)}
                       >
                         <User size={20} />
-                        {profile?.perfil === 'admin' ? 'Painel Admin' : 'O Meu Perfil'}
+                        {profile?.perfil === 'admin' ? t('admin') : t('profile')}
                       </Link>
                       <button
                         onClick={() => {
@@ -314,7 +394,7 @@ export default function Navbar() {
                         className="w-full flex items-center gap-3 px-6 py-4 text-base font-medium text-white hover:bg-white/10 transition-colors text-left"
                       >
                         <LogOut size={20} />
-                        Sair
+                        {t('logout')}
                       </button>
                     </div>
                   ) : (
@@ -325,7 +405,7 @@ export default function Navbar() {
                         onClick={() => setIsOpen(false)}
                       >
                         <LogIn size={20} />
-                        Entrar
+                        {t('login')}
                       </Link>
                     </div>
                   )}
@@ -338,4 +418,3 @@ export default function Navbar() {
     </>
   );
 }
-

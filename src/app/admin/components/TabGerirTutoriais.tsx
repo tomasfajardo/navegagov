@@ -55,6 +55,7 @@ export default function TabGerirTutoriais({ onEdit }: { onEdit?: (tutorial: any)
             <th className="px-4 py-4">Plataforma</th>
             <th className="px-4 py-4">Nível</th>
             <th className="px-4 py-4">Tipo</th>
+            <th className="px-4 py-4">★ Avaliação</th>
             <th className="px-4 py-4">Conteúdo</th>
             <th className="px-4 py-4 text-right">Ações</th>
           </tr>
@@ -79,6 +80,16 @@ export default function TabGerirTutoriais({ onEdit }: { onEdit?: (tutorial: any)
                   {(t.tipo === 'jogo' || t.tipo === 'quiz') && <Gamepad2 size={16} className="text-purple-500" />}
                   <span className="capitalize">{t.tipo}</span>
                 </div>
+              </td>
+              <td className="px-4 py-4 text-sm">
+                {t.total_avaliacoes > 0 ? (
+                  <span className="text-amber-500 font-semibold">
+                    ★ {Number(t.avaliacao_media).toFixed(1)}{' '}
+                    <span className="text-muted-foreground font-normal text-xs">({t.total_avaliacoes})</span>
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground text-xs">—</span>
+                )}
               </td>
               <td className="px-4 py-4">
                 {t.conteudo_url && (

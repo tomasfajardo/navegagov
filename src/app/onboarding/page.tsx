@@ -7,100 +7,40 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Plane, Monitor, GraduationCap, 
   ArrowRight, ArrowLeft, Loader2, 
-  CheckCircle2, Sparkles, BookOpen, 
-  Video, FileText, Gamepad2, BrainCircuit, X
+  CheckCircle2, Sparkles, 
+  Video, FileText, BrainCircuit, X
 } from 'lucide-react';
-import Link from 'next/link';
-
-const QUESTIONS = [
-  {
-    id: 1,
-    question: 'Qual é a tua situação atual?',
-    options: [
-      'Sou reformado(a) ou tenho mais de 60 anos',
-      'Vim recentemente para Portugal',
-      'Tenho dificuldades com tecnologia',
-      'Sou jovem e quero aprender a gerir os meus serviços'
-    ]
-  },
-  {
-    id: 2,
-    question: 'Com que frequência usas serviços online do governo?',
-    options: [
-      'Nunca usei',
-      'Já tentei mas tive dificuldades',
-      'Uso às vezes mas quero melhorar',
-      'Uso regularmente mas quero aprender mais'
-    ]
-  },
-  {
-    id: 3,
-    question: 'Qual é o serviço que mais precisas de usar?',
-    options: [
-      'Segurança Social (pensões, subsídios, desemprego)',
-      'Portal das Finanças (IRS, NIF, impostos)',
-      'SNS24 (saúde, consultas, receitas)',
-      'Documentos e registos (cartão de cidadão, passaporte, IRN)'
-    ]
-  },
-  {
-    id: 4,
-    question: 'Como preferes aprender?',
-    options: [
-      'Ver vídeos passo a passo',
-      'Ler guias e manuais',
-      'Praticar com jogos e quizzes',
-      'Uma mistura de tudo'
-    ]
-  },
-  {
-    id: 5,
-    question: 'Qual é o teu maior obstáculo?',
-    options: [
-      'Não percebo a linguagem técnica dos portais',
-      'Não sei por onde começar',
-      'Tenho medo de cometer erros',
-      'Não tenho ninguém que me ajude'
-    ]
-  }
-];
+import { useTranslations } from 'next-intl';
 
 const PROFILES = {
   idoso: {
-    label: 'Idoso',
     id: 'idoso',
     icon: User,
     color: 'text-blue-500',
-    bgColor: 'bg-blue-500/10',
-    description: 'Personalizamos a tua experiência para ser simples, clara e focada nos serviços de reforma e saúde.'
+    bgColor: 'bg-blue-500/10'
   },
   imigrante: {
-    label: 'Imigrante',
     id: 'imigrante',
     icon: Plane,
     color: 'text-emerald-500',
-    bgColor: 'bg-emerald-500/10',
-    description: 'Focamos nos serviços de residência, documentos e integração para facilitar a tua vida em Portugal.'
+    bgColor: 'bg-emerald-500/10'
   },
   adulto: {
-    label: 'Adulto com dificuldades',
     id: 'adulto',
     icon: Monitor,
     color: 'text-orange-500',
-    bgColor: 'bg-orange-500/10',
-    description: 'Guias passo a passo e linguagem simples para te ajudar a superar qualquer barreira digital.'
+    bgColor: 'bg-orange-500/10'
   },
   jovem_adulto: {
-    label: 'Jovem adulto',
     id: 'jovem_adulto',
     icon: GraduationCap,
     color: 'text-purple-500',
-    bgColor: 'bg-purple-500/10',
-    description: 'Explora todos os serviços públicos de forma autónoma e eficiente com as nossas dicas rápidas.'
+    bgColor: 'bg-purple-500/10'
   }
 };
 
 export default function OnboardingPage() {
+  const t = useTranslations('Onboarding');
   const [step, setStep] = useState(0); // 0 to 4: questions, 5: loading, 6: result
   const [answers, setAnswers] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,6 +52,34 @@ export default function OnboardingPage() {
   
   const router = useRouter();
   const supabase = createClient();
+
+  const QUESTIONS = [
+    {
+      id: 1,
+      question: t('q1'),
+      options: t.raw('q1_opts') as string[]
+    },
+    {
+      id: 2,
+      question: t('q2'),
+      options: t.raw('q2_opts') as string[]
+    },
+    {
+      id: 3,
+      question: t('q3'),
+      options: t.raw('q3_opts') as string[]
+    },
+    {
+      id: 4,
+      question: t('q4'),
+      options: t.raw('q4_opts') as string[]
+    },
+    {
+      id: 5,
+      question: t('q5'),
+      options: t.raw('q5_opts') as string[]
+    }
+  ];
 
   useEffect(() => {
     const checkUser = async () => {
@@ -157,13 +125,13 @@ export default function OnboardingPage() {
     // Auto profile determination logic
     const determineProfileKey = (res: string[]) => {
       const r0 = res[0] || '';
-      if (r0.includes('60 anos') || r0.includes('reformado'))
+      if (r0.includes('60 anos') || r0.includes('reformado') || r0.includes('retired') || r0.includes('jubilado'))
         return 'idoso';
-      if (r0.includes('Portugal') || r0.includes('vim') || r0.includes('recentemente'))
+      if (r0.includes('Portugal') || r0.includes('vim') || r0.includes('recentemente') || r0.includes('recently') || r0.includes('recientemente'))
         return 'imigrante';
-      if (r0.includes('dificuldades'))
+      if (r0.includes('dificuldades') || r0.includes('difficulties') || r0.includes('dificultades'))
         return 'adulto';
-      if (r0.includes('jovem') || r0.includes('jovem_adulto'))
+      if (r0.includes('jovem') || r0.includes('young') || r0.includes('joven'))
         return 'jovem_adulto';
       return 'adulto';
     };
@@ -177,7 +145,13 @@ export default function OnboardingPage() {
       'Segurança Social': 'Segurança Social',
       'Portal das Finanças': 'Portal das Finanças',
       'SNS24': 'SNS24',
-      'Documentos e registos': 'IRN'
+      'Documentos e registos': 'IRN',
+      'Social Security': 'Segurança Social',
+      'Finance Portal': 'Portal das Finanças',
+      'Documents and records': 'IRN',
+      'Seguridad Social': 'Segurança Social',
+      'Portal de Finanzas': 'Portal das Finanças',
+      'Documentos y registros': 'IRN'
     };
     
     let selectedPlatformName = '';
@@ -227,13 +201,19 @@ export default function OnboardingPage() {
         'Segurança Social': 'Segurança Social',
         'Portal das Finanças': 'Portal das Finanças',
         'SNS24': 'SNS24',
-        'Documentos e registos': 'IRN'
+        'Documentos e registos': 'IRN',
+        'Social Security': 'Segurança Social',
+        'Finance Portal': 'Portal das Finanças',
+        'Documents and records': 'IRN',
+        'Seguridad Social': 'Segurança Social',
+        'Portal de Finanzas': 'Portal das Finanças',
+        'Documentos y registros': 'IRN'
       };
       
       let plataformaPreferida = '';
       for (const key in platformMap) {
         if (answers[2].includes(key)) {
-          plataformaPreferida = platformMap[key];
+          plaboratory: plataformaPreferida = platformMap[key];
           break;
         }
       }
@@ -270,7 +250,7 @@ export default function OnboardingPage() {
         .update({ 
           perfil: determinedProfile.id,
           onboarding_respostas: answers,
-          plataforma_preferida: plataformaPreferida,
+          plataforma_preferida: plataformaPreferida || 'Segurança Social',
           estilo_aprendizagem: answers[3]
         })
         .eq('id', user.id)
@@ -315,7 +295,7 @@ export default function OnboardingPage() {
               }}
               className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors font-bold text-sm"
             >
-              <X size={16} /> Cancelar Inquérito
+              <X size={16} /> {t('cancelSurvey')}
             </button>
           </div>
         )}
@@ -331,8 +311,8 @@ export default function OnboardingPage() {
               {/* Progress Bar */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm font-bold text-muted-foreground uppercase tracking-widest">
-                  <span>Inquérito de Perfil</span>
-                  <span>{step + 1} de {QUESTIONS.length}</span>
+                  <span>{t('profileSettings')}</span>
+                  <span>{step + 1} {t('of')} {QUESTIONS.length}</span>
                 </div>
                 <div className="h-2 w-full bg-accent rounded-full overflow-hidden">
                   <motion.div 
@@ -348,7 +328,7 @@ export default function OnboardingPage() {
                   {QUESTIONS[step].question}
                 </h1>
                 <p className="text-muted-foreground">
-                  {step === 0 ? `Olá ${userName}, ajuda-nos a conhecer-te melhor.` : 'Escolhe a opção que mais se adequa a ti.'}
+                  {step === 0 ? `${t('hello')} ${userName}, ${t('welcome')}` : t('chooseOption')}
                 </p>
               </div>
 
@@ -372,7 +352,7 @@ export default function OnboardingPage() {
                   onClick={() => setStep(step - 1)}
                   className="flex items-center gap-2 text-muted-foreground hover:text-foreground font-bold transition-colors mx-auto"
                 >
-                  <ArrowLeft size={18} /> Voltar à pergunta anterior
+                  <ArrowLeft size={18} /> {t('back')}
                 </button>
               )}
             </motion.div>
@@ -394,10 +374,10 @@ export default function OnboardingPage() {
                 </div>
               </div>
               <h2 className="text-3xl font-black animate-pulse">
-                A personalizar a tua experiência...
+                {t('personalizing')}
               </h2>
               <p className="text-muted-foreground max-w-sm mx-auto">
-                Estamos a analisar as tuas respostas para criar o percurso de aprendizagem ideal para ti.
+                {t('analyzing')}
               </p>
             </motion.div>
           ) : (
@@ -414,23 +394,23 @@ export default function OnboardingPage() {
                   <determinedProfile.icon size={40} />
                 </div>
 
-                <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground mb-2">O teu perfil ideal</h2>
-                <h3 className="text-4xl font-black mb-6">{determinedProfile.label}</h3>
+                <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground mb-2">{t('idealProfile')}</h2>
+                <h3 className="text-4xl font-black mb-6">{t(`profiles.${determinedProfile.id}`)}</h3>
                 
                 <p className="text-muted-foreground text-lg leading-relaxed max-w-md mx-auto mb-8">
-                  {determinedProfile.description}
+                  {t(`profiles.${determinedProfile.id}Desc`)}
                 </p>
 
                 <div className="flex items-center justify-center gap-3 py-4 px-6 bg-accent/50 rounded-2xl w-fit mx-auto border border-border">
                   <CheckCircle2 className="text-emerald-500" size={20} />
-                  <span className="font-bold">Perfil configurado com sucesso!</span>
+                  <span className="font-bold">{t('profileSuccess')}</span>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <div className="flex items-center gap-2">
                   <BrainCircuit className="text-primary" size={24} />
-                  <h4 className="text-xl font-bold">Sugestões para começares:</h4>
+                  <h4 className="text-xl font-bold">{t('suggestions')}</h4>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
@@ -441,7 +421,7 @@ export default function OnboardingPage() {
                       </div>
                       <div className="flex-grow">
                         <h5 className="font-bold leading-tight">{tut.titulo}</h5>
-                        <p className="text-xs text-muted-foreground">{tut.plataformas?.nome} • {tut.duracao_min} min</p>
+                        <p className="text-xs text-muted-foreground">{tut.plataformas?.nome} • {tut.duracao_min} {t('min')}</p>
                       </div>
                       <ArrowRight className="text-muted-foreground group-hover:text-primary transition-colors" size={20} />
                     </div>
@@ -449,7 +429,7 @@ export default function OnboardingPage() {
                   
                   {suggestedTutorials.length === 0 && (
                     <div className="bg-accent/30 border-2 border-dashed border-border p-8 rounded-3xl text-center">
-                      <p className="text-muted-foreground font-medium italic">Preparamos uma seleção variada para ti na galeria.</p>
+                      <p className="text-muted-foreground font-medium italic">{t('noSuggestions')}</p>
                     </div>
                   )}
                 </div>
@@ -466,7 +446,7 @@ export default function OnboardingPage() {
                   <Loader2 className="animate-spin" size={28} />
                 ) : (
                   <>
-                    Começar a aprender
+                    {t('startLearning')}
                     <ArrowRight size={24} />
                   </>
                 )}
