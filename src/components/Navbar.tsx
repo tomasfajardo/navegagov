@@ -123,36 +123,39 @@ export default function Navbar() {
           
             {/* Header Right Actions */}
             <div className="flex items-center gap-2 sm:gap-3">
-              {session ? (
-                <>
-                  <Link 
-                    href={profile?.perfil === 'admin' ? "/admin" : "/perfil"} 
-                    className="flex px-3 sm:px-5 py-2 bg-[#3B82F6] text-white rounded-full text-sm font-bold items-center gap-2 hover:bg-[#60A5FA] transition-all shadow-lg shadow-[#3B82F6]/20"
+              {/* Auth buttons — desktop only */}
+              <div className="hidden md:flex items-center gap-2">
+                {session ? (
+                  <>
+                    <Link
+                      href={profile?.perfil === 'admin' ? "/admin" : "/perfil"}
+                      className="flex px-5 py-2 bg-[#3B82F6] text-white rounded-full text-sm font-bold items-center gap-2 hover:bg-[#60A5FA] transition-all shadow-lg shadow-[#3B82F6]/20"
+                    >
+                      <User size={16} />
+                      {profile?.perfil === 'admin' ? t('admin') : t('profile')}
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex px-4 py-2 border border-white/20 bg-transparent text-white hover:bg-white/10 rounded-full transition-all items-center gap-2"
+                      title={t('logout')}
+                    >
+                      <LogOut size={16} />
+                      <span className="text-sm font-medium">{t('logout')}</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="flex px-5 py-2 bg-[#3B82F6] text-white rounded-full text-sm font-bold items-center gap-2 hover:bg-[#60A5FA] transition-all shadow-lg shadow-[#3B82F6]/20"
                   >
-                    <User size={16} />
-                    <span className="hidden sm:inline">{profile?.perfil === 'admin' ? t('admin') : t('profile')}</span>
+                    <LogIn size={16} />
+                    {t('login')}
                   </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="flex p-2 sm:px-4 sm:py-2 border border-white/20 bg-transparent text-white hover:bg-white/10 rounded-full transition-all items-center gap-2"
-                    title={t('logout')}
-                  >
-                    <LogOut size={16} />
-                    <span className="hidden sm:inline text-sm font-medium">{t('logout')}</span>
-                  </button>
-                </>
-              ) : (
-                <Link 
-                  href="/login" 
-                  className="flex px-3 sm:px-5 py-2 bg-[#3B82F6] text-white rounded-full text-sm font-bold items-center gap-2 hover:bg-[#60A5FA] transition-all shadow-lg shadow-[#3B82F6]/20"
-                >
-                  <LogIn size={16} />
-                  <span className="hidden sm:inline">{t('login')}</span>
-                </Link>
-              )}
+                )}
+              </div>
 
-              {/* Language Selector Dropdown */}
-              <div className="relative">
+              {/* Language Selector — desktop only */}
+              <div className="hidden md:block relative">
                 <button
                   onClick={() => setIsLangOpen(!isLangOpen)}
                   className="flex items-center gap-1.5 px-3 py-2 border border-white/20 hover:bg-white/10 rounded-full transition-all text-sm font-bold bg-[#0A0F2C]"
@@ -160,21 +163,12 @@ export default function Navbar() {
                 >
                   <span>{languages.find(l => l.code === activeLocale)?.flag}</span>
                   <span className="uppercase text-[#F0F4FF]">{activeLocale}</span>
-                  <motion.span
-                    animate={{ rotate: isLangOpen ? 180 : 0 }}
-                    className="text-[10px] opacity-60"
-                  >
-                    ▼
-                  </motion.span>
+                  <motion.span animate={{ rotate: isLangOpen ? 180 : 0 }} className="text-[10px] opacity-60">▼</motion.span>
                 </button>
-
                 <AnimatePresence>
                   {isLangOpen && (
                     <>
-                      <div 
-                        className="fixed inset-0 z-40" 
-                        onClick={() => setIsLangOpen(false)} 
-                      />
+                      <div className="fixed inset-0 z-40" onClick={() => setIsLangOpen(false)} />
                       <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -186,15 +180,10 @@ export default function Navbar() {
                             key={lang.code}
                             onClick={() => changeLanguage(lang.code)}
                             className={`w-full flex items-center justify-between px-3 py-2 text-sm font-bold rounded-xl transition-all ${
-                              activeLocale === lang.code 
-                              ? 'bg-[#3B82F6] text-white' 
-                              : 'text-white/80 hover:bg-white/10 hover:text-white'
+                              activeLocale === lang.code ? 'bg-[#3B82F6] text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'
                             }`}
                           >
-                            <span className="flex items-center gap-2">
-                              <span>{lang.flag}</span>
-                              <span>{lang.name}</span>
-                            </span>
+                            <span className="flex items-center gap-2"><span>{lang.flag}</span><span>{lang.name}</span></span>
                             {activeLocale === lang.code && <Check size={14} />}
                           </button>
                         ))}
@@ -203,9 +192,9 @@ export default function Navbar() {
                   )}
                 </AnimatePresence>
               </div>
-              
-              {/* Accessibility Button */}
-              <div className="relative">
+
+              {/* Accessibility Button — desktop only */}
+              <div className="hidden md:block relative">
                 <button
                   onClick={() => setIsAccessOpen(!isAccessOpen)}
                   className={`relative text-white p-2 focus:outline-none hover:bg-white/10 rounded-full transition-colors ${isAtivo ? 'bg-[#3B82F6]/20' : ''}`}
@@ -216,14 +205,10 @@ export default function Navbar() {
                     <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full border-2 border-[#0A0F2C]"></span>
                   )}
                 </button>
-
                 <AnimatePresence>
                   {isAccessOpen && (
                     <>
-                      <div 
-                        className="fixed inset-0 z-40" 
-                        onClick={() => setIsAccessOpen(false)} 
-                      />
+                      <div className="fixed inset-0 z-40" onClick={() => setIsAccessOpen(false)} />
                       <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -234,9 +219,7 @@ export default function Navbar() {
                           <SlidersHorizontal size={20} className="text-primary" />
                           {tAccess('title')}
                         </h4>
-
                         <div className="space-y-8">
-                          {/* Text Size */}
                           <div className="space-y-3">
                             <label className="text-xs font-bold uppercase tracking-wider text-[var(--foreground)] opacity-70 flex items-center gap-2">
                               <Type size={14} /> {tAccess('fontSize')}
@@ -251,9 +234,9 @@ export default function Navbar() {
                                   key={tItem.id}
                                   onClick={() => setTamanho(tItem.id as any)}
                                   className={`flex-1 py-2 rounded-xl font-bold transition-all border-2 ${
-                                    preferencias.tamanho === tItem.id 
-                                    ? 'bg-primary border-primary text-white' 
-                                    : 'bg-[var(--accent)] border-transparent text-[var(--foreground)] hover:border-primary/30'
+                                    preferencias.tamanho === tItem.id
+                                      ? 'bg-primary border-primary text-white'
+                                      : 'bg-[var(--accent)] border-transparent text-[var(--foreground)] hover:border-primary/30'
                                   }`}
                                   title={tItem.title}
                                 >
@@ -262,46 +245,29 @@ export default function Navbar() {
                               ))}
                             </div>
                           </div>
-
-                          {/* Contrast */}
                           <div className="flex items-center justify-between">
                             <label className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2">
-                              <SunMoon size={18} className="text-primary" />
-                              {tAccess('highContrast')}
+                              <SunMoon size={18} className="text-primary" /> {tAccess('highContrast')}
                             </label>
                             <button
                               onClick={toggleContraste}
-                              className={`w-12 h-6 rounded-full transition-colors relative ${
-                                preferencias.contraste ? 'bg-primary' : 'bg-[var(--border)]'
-                              }`}
+                              className={`w-12 h-6 rounded-full transition-colors relative ${preferencias.contraste ? 'bg-primary' : 'bg-[var(--border)]'}`}
                             >
-                              <motion.div 
-                                animate={{ x: preferencias.contraste ? 26 : 2 }}
-                                className="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm"
-                              />
+                              <motion.div animate={{ x: preferencias.contraste ? 26 : 2 }} className="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm" />
                             </button>
                           </div>
-
-                          {/* Spacing */}
                           <div className="flex items-center justify-between">
                             <label className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2">
-                              <MoveVertical size={18} className="text-primary" />
-                              {tAccess('spacing')}
+                              <MoveVertical size={18} className="text-primary" /> {tAccess('spacing')}
                             </label>
                             <button
                               onClick={toggleEspacamento}
-                              className={`w-12 h-6 rounded-full transition-colors relative ${
-                                preferencias.espacamento ? 'bg-primary' : 'bg-[var(--border)]'
-                              }`}
+                              className={`w-12 h-6 rounded-full transition-colors relative ${preferencias.espacamento ? 'bg-primary' : 'bg-[var(--border)]'}`}
                             >
-                              <motion.div 
-                                animate={{ x: preferencias.espacamento ? 26 : 2 }}
-                                className="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm"
-                              />
+                              <motion.div animate={{ x: preferencias.espacamento ? 26 : 2 }} className="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm" />
                             </button>
                           </div>
                         </div>
-
                         <div className="mt-8 pt-4 border-t border-[var(--border)]">
                           <p className="text-[10px] text-[var(--foreground)] opacity-60 text-center font-medium italic">
                             {t('accessSaved')}
@@ -313,10 +279,10 @@ export default function Navbar() {
                 </AnimatePresence>
               </div>
 
-              {/* Universal Hamburger Button */}
+              {/* Hamburger — always visible */}
               <button
                 onClick={() => setIsOpen(true)}
-                className="text-white p-2 focus:outline-none hover:bg-white/10 rounded-full transition-colors ml-1"
+                className="text-white p-2 focus:outline-none hover:bg-white/10 rounded-full transition-colors"
               >
                 <Menu size={24} />
               </button>
@@ -387,10 +353,7 @@ export default function Navbar() {
                         {profile?.perfil === 'admin' ? t('admin') : t('profile')}
                       </Link>
                       <button
-                        onClick={() => {
-                          handleLogout();
-                          setIsOpen(false);
-                        }}
+                        onClick={() => { handleLogout(); setIsOpen(false); }}
                         className="w-full flex items-center gap-3 px-6 py-4 text-base font-medium text-white hover:bg-white/10 transition-colors text-left"
                       >
                         <LogOut size={20} />
@@ -409,6 +372,77 @@ export default function Navbar() {
                       </Link>
                     </div>
                   )}
+
+                  {/* Language + Accessibility — mobile only */}
+                  <div className="md:hidden">
+                    <div className="my-4 border-t border-white/10 mx-6" />
+
+                    {/* Language picker */}
+                    <div className="px-6 py-3">
+                      <p className="text-xs font-bold uppercase tracking-wider text-white/50 mb-3">Idioma</p>
+                      <div className="flex gap-2">
+                        {languages.map(lang => (
+                          <button
+                            key={lang.code}
+                            onClick={() => { changeLanguage(lang.code); setIsOpen(false); }}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold transition-all ${
+                              activeLocale === lang.code ? 'bg-[#3B82F6] text-white' : 'bg-white/10 text-white/80 hover:bg-white/20'
+                            }`}
+                          >
+                            <span>{lang.flag}</span><span>{lang.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Accessibility controls */}
+                    <div className="px-6 py-3">
+                      <p className="text-xs font-bold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-2">
+                        <SlidersHorizontal size={13} /> {tAccess('title')}
+                      </p>
+                      <div className="flex gap-2 mb-4">
+                        {[
+                          { id: 'normal', label: 'A' },
+                          { id: 'grande', label: 'A+' },
+                          { id: 'muito-grande', label: 'A++' },
+                        ].map(tItem => (
+                          <button
+                            key={tItem.id}
+                            onClick={() => setTamanho(tItem.id as any)}
+                            className={`flex-1 py-2 rounded-xl font-bold transition-all border-2 text-sm ${
+                              preferencias.tamanho === tItem.id
+                                ? 'bg-[#3B82F6] border-[#3B82F6] text-white'
+                                : 'border-white/20 text-white/80 hover:border-white/40'
+                            }`}
+                          >
+                            {tItem.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-sm font-medium text-white/80 flex items-center gap-2">
+                          <SunMoon size={16} /> {tAccess('highContrast')}
+                        </span>
+                        <button
+                          onClick={toggleContraste}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${preferencias.contraste ? 'bg-[#3B82F6]' : 'bg-white/20'}`}
+                        >
+                          <motion.div animate={{ x: preferencias.contraste ? 26 : 2 }} className="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm" />
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-sm font-medium text-white/80 flex items-center gap-2">
+                          <MoveVertical size={16} /> {tAccess('spacing')}
+                        </span>
+                        <button
+                          onClick={toggleEspacamento}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${preferencias.espacamento ? 'bg-[#3B82F6]' : 'bg-white/20'}`}
+                        >
+                          <motion.div animate={{ x: preferencias.espacamento ? 26 : 2 }} className="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>

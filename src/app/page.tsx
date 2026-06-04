@@ -191,8 +191,8 @@ function ProfileCard({ index, icon, title, description, color, bgColor, link, ex
             {icon}
           </motion.div>
           
-          <h3 className="text-2xl font-bold mb-3">{title}</h3>
-          <p className="text-muted-foreground text-sm leading-relaxed mb-6">{description}</p>
+          <h3 className="text-2xl font-bold mb-3 text-gray-900">{title}</h3>
+          <p className="text-gray-600 text-sm leading-relaxed mb-6">{description}</p>
           
           <div className="flex items-center gap-2 font-bold text-sm" style={{ color }}>
             {exploreText} <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
