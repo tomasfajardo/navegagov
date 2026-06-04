@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Search, BookOpen, Clock, ChevronRight, Video, FileText, CheckCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import StarRating from '@/components/StarRating';
@@ -31,6 +30,16 @@ const TIPO_CONFIG = {
   manual: { icon: FileText, color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' },
 };
 
+const PORTAL_ORDER = [
+  'Portal das Finanças',
+  'Segurança Social',
+  'SNS24',
+  'Autenticação.gov',
+  'IRN',
+  'ePortugal',
+  'Apoio ao Imigrante',
+];
+
 export default function TutoriaisPage() {
   const tTrans = useTranslations('Tutoriais');
   const tF = useTranslations('Filters');
@@ -40,7 +49,6 @@ export default function TutoriaisPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
-  const [prefPlatform, setPrefPlatform] = useState<string | null>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -74,7 +82,6 @@ export default function TutoriaisPage() {
           .single();
 
         if (profile?.plataforma_preferida) {
-          setPrefPlatform(profile.plataforma_preferida);
           const sorted = [...tutsWithProg].sort((a, b) => {
             const aMatch = a.plataformas?.nome?.toLowerCase().includes(profile.plataforma_preferida.toLowerCase());
             const bMatch = b.plataformas?.nome?.toLowerCase().includes(profile.plataforma_preferida.toLowerCase());
@@ -151,15 +158,30 @@ export default function TutoriaisPage() {
     return matchesIdioma && matchesTipo && matchesPlat && matchesSearch;
   });
 
+  // Group filtered tutorials by portal, following PORTAL_ORDER
+  const grouped: { portal: string; items: Tutorial[] }[] = PORTAL_ORDER
+    .map(portal => ({
+      portal,
+      items: filtered.filter(t => t.plataformas?.nome === portal),
+    }))
+    .filter(g => g.items.length > 0);
+
+  // Tutorials whose portal isn't in PORTAL_ORDER go at the end
+  const knownPortals = new Set(PORTAL_ORDER);
+  const otherItems = filtered.filter(t => !knownPortals.has(t.plataformas?.nome));
+  if (otherItems.length > 0) {
+    grouped.push({ portal: 'Outros', items: otherItems });
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <header className="mb-12">
-        <h1 className="text-4xl font-extrabold mb-4">{tTrans('title')}</h1>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+      <header className="mb-10">
+        <h1 className="text-4xl font-extrabold mb-2">{tTrans('title')}</h1>
         <p className="text-muted-foreground text-lg">{tTrans('subtitle')}</p>
       </header>
 
       {/* Search + Filter */}
-      <div className="flex items-center gap-4 mb-12">
+      <div className="flex items-center gap-4 mb-10">
         <div className="relative flex-grow">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
           <input
@@ -180,79 +202,97 @@ export default function TutoriaisPage() {
         />
       </div>
 
-      {/* Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[1,2,3,4,5,6].map(i => <div key={i} className="h-64 bg-accent animate-pulse rounded-2xl" />)}
+        <div className="space-y-10">
+          {[1, 2, 3].map(i => (
+            <div key={i}>
+              <div className="h-6 w-48 bg-accent animate-pulse rounded mb-4" />
+              <div className="space-y-3">
+                {[1, 2].map(j => <div key={j} className="h-24 bg-accent animate-pulse rounded-2xl" />)}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : grouped.length > 0 ? (
+        <div className="space-y-12">
+          {grouped.map(({ portal, items }) => (
+            <section key={portal}>
+              {/* Section header */}
+              <div className="flex items-baseline gap-3 mb-4">
+                <h2 className="text-xl font-bold" style={{ fontSize: '21px' }}>{portal}</h2>
+                <span className="text-sm text-muted-foreground font-medium">
+                  {items.length} {items.length === 1 ? 'tutorial' : 'tutoriais'}
+                </span>
+              </div>
+              <div className="h-px bg-border mb-5" />
+
+              {/* Tutorial rows */}
+              <div className="space-y-3">
+                {items.map(t => {
+                  const tipoCfg = TIPO_CONFIG[t.tipo] || TIPO_CONFIG.video;
+                  const TipoIcon = tipoCfg.icon;
+                  return (
+                    <Link
+                      key={t.id}
+                      href={`/tutoriais/${t.id}`}
+                      className="flex items-center gap-6 px-5 py-4 rounded-2xl bg-card transition-colors duration-150 group"
+                      style={{
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFF')}
+                      onMouseLeave={e => (e.currentTarget.style.background = '')}
+                    >
+                      {/* Left: title + description */}
+                      <div className="flex-grow min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h3 className="font-bold text-base leading-snug truncate">{t.titulo}</h3>
+                          {session && t.progresso?.completado && (
+                            <CheckCircle size={15} className="text-green-500 shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{t.descricao}</p>
+
+                        {/* Progress bar — only when logged in and started */}
+                        {session && t.progresso && (
+                          <div className="mt-2 h-1 w-full max-w-xs bg-accent rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${t.progresso.completado ? 'bg-primary' : 'bg-yellow-500'}`}
+                              style={{ width: t.progresso.completado ? '100%' : '50%' }}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right: metadata + button */}
+                      <div className="flex items-center gap-4 shrink-0">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock size={13} />
+                          <span>{t.duracao_min} min</span>
+                        </div>
+                        <span className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${tipoCfg.color}`}>
+                          <TipoIcon size={11} />
+                          {tTrans(t.tipo)}
+                        </span>
+                        <StarRating
+                          readOnly
+                          averageRating={t.avaliacao_media}
+                          totalRatings={t.total_avaliacoes}
+                          conteudoId={t.id}
+                          tipoConteudo="tutorial"
+                        />
+                        <span className="flex items-center gap-1 text-primary font-semibold text-sm group-hover:gap-2 transition-all">
+                          {t.progresso?.completado ? tTrans('review') : tTrans('open')}
+                          <ChevronRight size={16} />
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {filtered.map((t, idx) => {
-            const tipoCfg = TIPO_CONFIG[t.tipo] || TIPO_CONFIG.video;
-            const TipoIcon = tipoCfg.icon;
-            return (
-              <motion.div
-                key={t.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.08 }}
-              >
-                <Link href={`/tutoriais/${t.id}`} className="card-hover p-6 flex flex-col h-full block">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary uppercase tracking-wider">
-                      {t.plataformas?.nome}
-                    </span>
-                    <span className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${tipoCfg.color}`}>
-                      <TipoIcon size={12} />
-                      {tTrans(t.tipo)}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold mb-1">{t.titulo}</h3>
-                  <StarRating readOnly averageRating={t.avaliacao_media} totalRatings={t.total_avaliacoes} conteudoId={t.id} tipoConteudo="tutorial" />
-                  <p className="text-sm text-muted-foreground mt-2 mb-6 flex-grow">{t.descricao}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock size={14} />
-                      {t.duracao_min} {tTrans('minutes')}
-                    </div>
-                    <div className="flex items-center gap-1 text-primary font-semibold text-sm">
-                      {t.progresso?.completado ? tTrans('review') : tTrans('open')} <ChevronRight size={18} />
-                    </div>
-                  </div>
-
-                  {/* Progress bar */}
-                  {session && t.progresso && (
-                    <div className="mt-6">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                          {t.progresso.completado ? tTrans('completed') : tTrans('started')}
-                        </span>
-                        <span className="text-[10px] font-bold text-primary">{t.progresso.completado ? '100%' : '50%'}</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-accent rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: t.progresso.completado ? '100%' : '50%' }}
-                          className={`h-full rounded-full ${t.progresso.completado ? 'bg-primary' : 'bg-yellow-500'}`}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Checkmark */}
-                  {session && t.progresso?.completado && (
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg border-2 border-background animate-in zoom-in duration-300">
-                      <CheckCircle size={18} />
-                    </div>
-                  )}
-                </Link>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {!loading && filtered.length === 0 && (
         <div className="text-center py-20 bg-accent rounded-3xl">
           <BookOpen size={48} className="mx-auto mb-4 text-muted-foreground opacity-20" />
           <h3 className="text-xl font-bold">{tTrans('notFound')}</h3>
