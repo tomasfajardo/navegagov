@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 const API_KEY = process.env.NEXT_PUBLIC_TOMTOM_API_KEY
 
@@ -13,6 +14,7 @@ const CATEGORIAS = [
 type MarkerEntry = { id: string; categoria: string; nome: string; marker: any }
 
 export default function MapaImigrante() {
+  const t = useTranslations('ApoioImigrante')
   const mapRef         = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
   const allMarkersRef  = useRef<MarkerEntry[]>([])
@@ -195,7 +197,7 @@ export default function MapaImigrante() {
               animation: 'spin 0.8s linear infinite',
             }} />
             <p style={{ fontSize: '14px', color: '#374151', fontWeight: 500 }}>
-              A carregar serviços…
+              {t('loadingServices')}
             </p>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>

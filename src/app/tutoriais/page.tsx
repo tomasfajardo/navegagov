@@ -221,7 +221,7 @@ export default function TutoriaisPage() {
               <div className="flex items-baseline gap-3 mb-4">
                 <h2 className="text-xl font-bold" style={{ fontSize: '21px' }}>{portal}</h2>
                 <span className="text-sm text-muted-foreground font-medium">
-                  {items.length} {items.length === 1 ? 'tutorial' : 'tutoriais'}
+                  {items.length} {items.length === 1 ? tTrans('tutorialSingle') : tTrans('tutorialPlural')}
                 </span>
               </div>
               <div className="h-px bg-border mb-5" />

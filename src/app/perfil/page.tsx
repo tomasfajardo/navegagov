@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   User, Plane, Monitor, GraduationCap, Check,
   Calendar, Mail, Star, Zap,
@@ -13,6 +13,7 @@ import {
 
 export default function PerfilPage() {
   const t = useTranslations('Perfil');
+  const locale = useLocale();
 
   const profiles = [
     {
@@ -266,7 +267,7 @@ export default function PerfilPage() {
 
               <div className="mt-8 pt-8 border-t border-border flex items-center justify-center gap-2 text-xs text-muted-foreground">
                 <Calendar size={14} />
-                {t('memberSince')} {profileData?.created_at ? new Date(profileData.created_at).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' }) : '---'}
+                {t('memberSince')} {profileData?.created_at ? new Date(profileData.created_at).toLocaleDateString(locale, { month: 'long', year: 'numeric' }) : '---'}
               </div>
             </div>
           </div>
@@ -354,7 +355,7 @@ export default function PerfilPage() {
                       </div>
                       <div>
                         <h4 className="font-bold leading-tight mb-1">{ub.badges_definicoes.nome}</h4>
-                        <p className="text-[10px] text-muted-foreground uppercase">{new Date(ub.data_conquista).toLocaleDateString('pt-PT')}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase">{new Date(ub.data_conquista).toLocaleDateString(locale)}</p>
                       </div>
                     </div>
                   ))}

@@ -10,7 +10,8 @@
     "profile": "Profile",
     "admin": "Admin Panel",
     "logout": "Log Out",
-    "login": "Log In"
+    "login": "Log In",
+    "accessSaved": "Your preferences will be saved automatically."
   },
   "Acessibilidade": {
     "title": "Accessibility",
@@ -68,7 +69,9 @@
     "completed": "Completed",
     "started": "Started",
     "video": "Video",
-    "manual": "Manual"
+    "manual": "Manual",
+    "tutorialSingle": "tutorial",
+    "tutorialPlural": "tutorials"
   },
   "Questionarios": {
     "title": "Quizzes",
@@ -257,7 +260,8 @@
     "stepsHeader": "Key Steps:",
     "findServices": "Find Services Near You",
     "findServicesDesc": "Discover where the nearest AIMA agencies, Citizen Shops, Health Centers, Finanças and Parish Councils are located relative to you.",
-    "loadingMap": "Loading map..."
+    "loadingMap": "Loading map...",
+    "loadingServices": "Loading services..."
   },
   "Progresso": {
     "title": "Hello",
@@ -290,7 +294,8 @@
     "tutorialConcluido": "Tutorial Completed",
     "novoBadge": "New Badge",
     "user": "User",
-    "noData": "No data to show"
+    "noData": "No data to show",
+    "of": "of"
   },
   "Onboarding": {
     "survey": "Profile Survey",
@@ -376,6 +381,36 @@
   },
   "status": {
     "completed": "Completed"
+  },
+  "JogoPortaisEstado": {
+    "backToGames": "Back to Games",
+    "title": "State Portals",
+    "subtitle": "Match each web address to the corresponding government portal",
+    "leftHeader": "Web Addresses",
+    "rightHeader": "Portals",
+    "dragHint": "drag to address",
+    "clickHint": "Tap a portal to select it, then tap the corresponding address.",
+    "completedTitle": "Excellent! 🎉",
+    "completedSubtitle": "You know Portuguese state portals well!",
+    "score": "Score",
+    "pairsCompleted": "pairs completed",
+    "playAgain": "Play Again",
+    "otherGames": "Other Games"
+  },
+  "JogoPrestacoesSociais": {
+    "backToGames": "Back to Games",
+    "title": "Social Benefits",
+    "subtitle": "Match each benefit to its correct description",
+    "leftHeader": "Benefit",
+    "rightHeader": "Description",
+    "dragHint": "drag to the benefit",
+    "clickHint": "Tap a description to select it, then tap the corresponding benefit.",
+    "completedTitle": "Excellent! 🎉",
+    "completedSubtitle": "You know Social Security benefits well!",
+    "score": "Score",
+    "pairsCompleted": "pairs completed",
+    "playAgain": "Play Again",
+    "otherGames": "Other Games"
   },
   "Login": {
     "title": "Your gateway to digital citizenship",

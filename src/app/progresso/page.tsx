@@ -167,7 +167,7 @@ export default function ProgressoPage() {
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-2xl font-bold">{t('conquistasTitle')}</h3>
           <span className="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
-            {stats.totalBadges} {locale === 'en' ? 'of' : 'de'} {allBadges.length} {t('unlockedOf')}
+            {stats.totalBadges} {t('of')} {allBadges.length} {t('unlockedOf')}
           </span>
         </div>
 

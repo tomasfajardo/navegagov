@@ -304,7 +304,7 @@ export default function Navbar() {
 
                         <div className="mt-8 pt-4 border-t border-[var(--border)]">
                           <p className="text-[10px] text-[var(--foreground)] opacity-60 text-center font-medium italic">
-                            As tuas preferências serão guardadas automaticamente.
+                            {t('accessSaved')}
                           </p>
                         </div>
                       </motion.div>

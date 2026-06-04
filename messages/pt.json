@@ -10,7 +10,8 @@
     "profile": "Perfil",
     "admin": "Painel Admin",
     "logout": "Sair",
-    "login": "Entrar"
+    "login": "Entrar",
+    "accessSaved": "As tuas preferências serão guardadas automaticamente."
   },
   "Acessibilidade": {
     "title": "Acessibilidade",
@@ -68,7 +69,9 @@
     "completed": "Concluído",
     "started": "Iniciado",
     "video": "Vídeo",
-    "manual": "Manual"
+    "manual": "Manual",
+    "tutorialSingle": "tutorial",
+    "tutorialPlural": "tutoriais"
   },
   "Questionarios": {
     "title": "Questionários",
@@ -257,7 +260,8 @@
     "stepsHeader": "Passos Principais:",
     "findServices": "Encontra Serviços Perto de Ti",
     "findServicesDesc": "Descobre onde ficam as agências AIMA, Lojas do Cidadão, Centros de Saúde, Finanças e Juntas de Freguesia mais próximos da tua localização.",
-    "loadingMap": "A carregar mapa..."
+    "loadingMap": "A carregar mapa...",
+    "loadingServices": "A carregar serviços…"
   },
   "Progresso": {
     "title": "Olá",
@@ -290,7 +294,8 @@
     "tutorialConcluido": "Tutorial Concluído",
     "novoBadge": "Novo Badge",
     "user": "Utilizador",
-    "noData": "Sem dados para mostrar"
+    "noData": "Sem dados para mostrar",
+    "of": "de"
   },
   "Onboarding": {
     "survey": "Inquérito de Perfil",
@@ -376,6 +381,36 @@
   },
   "status": {
     "completed": "Concluído"
+  },
+  "JogoPortaisEstado": {
+    "backToGames": "Voltar aos Jogos",
+    "title": "Portais do Estado",
+    "subtitle": "Liga cada endereço web ao portal governamental correspondente",
+    "leftHeader": "Endereços Web",
+    "rightHeader": "Portais",
+    "dragHint": "arrasta para o endereço",
+    "clickHint": "Toca num portal para o selecionar, depois toca no endereço correspondente.",
+    "completedTitle": "Excelente! 🎉",
+    "completedSubtitle": "Conheces bem os portais do Estado português!",
+    "score": "Pontuação",
+    "pairsCompleted": "pares concluídos",
+    "playAgain": "Jogar de Novo",
+    "otherGames": "Outros Jogos"
+  },
+  "JogoPrestacoesSociais": {
+    "backToGames": "Voltar aos Jogos",
+    "title": "Prestações Sociais",
+    "subtitle": "Liga cada prestação à sua descrição correta",
+    "leftHeader": "Prestação",
+    "rightHeader": "Descrição",
+    "dragHint": "arrasta para a prestação",
+    "clickHint": "Toca numa descrição para a selecionar, depois toca na prestação correspondente.",
+    "completedTitle": "Excelente! 🎉",
+    "completedSubtitle": "Conheces bem as prestações da Segurança Social!",
+    "score": "Pontuação",
+    "pairsCompleted": "pares concluídos",
+    "playAgain": "Jogar de Novo",
+    "otherGames": "Outros Jogos"
   },
   "Login": {
     "title": "A tua porta de entrada para a cidadania digital",

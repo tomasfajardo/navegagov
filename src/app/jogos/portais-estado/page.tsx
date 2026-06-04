@@ -7,6 +7,7 @@ import Link from 'next/link';
 import confetti from 'canvas-confetti';
 import { createClient } from '@/utils/supabase/client';
 import { registarProgresso } from '@/app/actions/progresso';
+import { useTranslations } from 'next-intl';
 
 const PARES = [
   { id: '1', conceito: 'segurancasocial.pt',       definicao: 'Segurança Social'    },
@@ -34,6 +35,7 @@ function buildInitialState() {
 }
 
 export default function PortaisEstadoPage() {
+  const t = useTranslations('JogoPortaisEstado');
   const supabase = createClient();
   const [estado, setEstado]       = useState(buildInitialState);
   const [celebrado, setCelebrado] = useState(false);
@@ -123,7 +125,7 @@ export default function PortaisEstadoPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <Link href="/jogos" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8 transition-colors">
-        <ArrowLeft size={16} /> Voltar aos Jogos
+        <ArrowLeft size={16} /> {t('backToGames')}
       </Link>
 
       {/* Title + progress */}
@@ -133,8 +135,8 @@ export default function PortaisEstadoPage() {
             <Gamepad2 size={22} className="text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold">Portais do Estado</h1>
-            <p className="text-sm text-muted-foreground">Liga cada endereço web ao portal governamental correspondente</p>
+            <h1 className="text-2xl font-extrabold">{t('title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 mt-6">
@@ -157,7 +159,7 @@ export default function PortaisEstadoPage() {
         {/* Left — Endereços (drop zones) */}
         <div>
           <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 text-center">
-            Endereços Web
+            {t('leftHeader')}
           </h2>
           <div className="space-y-3">
             {PARES.map(par => {
@@ -205,7 +207,7 @@ export default function PortaisEstadoPage() {
         {/* Right — Portais (draggable) */}
         <div>
           <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 text-center">
-            Portais <span className="hidden md:inline">— arrasta para o endereço</span>
+            {t('rightHeader')} <span className="hidden md:inline">— {t('dragHint')}</span>
           </h2>
           <div className="space-y-3">
             {estado.definicoesBaralhadas.map(par => {
@@ -248,7 +250,7 @@ export default function PortaisEstadoPage() {
             })}
           </div>
           <p className="text-xs text-muted-foreground text-center mt-4 md:hidden">
-            Toca num portal para o selecionar, depois toca no endereço correspondente.
+            {t('clickHint')}
           </p>
         </div>
       </div>
@@ -274,14 +276,14 @@ export default function PortaisEstadoPage() {
                 <Trophy size={48} />
               </motion.div>
 
-              <h2 className="text-3xl font-black mb-2">Excelente! 🎉</h2>
-              <p className="text-muted-foreground mb-6">Conheces bem os portais do Estado português!</p>
+              <h2 className="text-3xl font-black mb-2">{t('completedTitle')}</h2>
+              <p className="text-muted-foreground mb-6">{t('completedSubtitle')}</p>
 
               <div className="bg-primary/5 rounded-2xl p-6 mb-8 border border-primary/10">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-1">Pontuação</p>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-1">{t('score')}</p>
                 <p className="text-5xl font-black text-primary">{pontuacao}%</p>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {PARES.length} pares concluídos
+                  {PARES.length} {t('pairsCompleted')}
                 </p>
               </div>
 
@@ -290,10 +292,10 @@ export default function PortaisEstadoPage() {
                   onClick={handleReset}
                   className="flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold bg-accent hover:bg-accent/80 transition-colors"
                 >
-                  <RotateCcw size={16} /> Jogar de Novo
+                  <RotateCcw size={16} /> {t('playAgain')}
                 </button>
                 <Link href="/jogos" className="btn-primary flex items-center justify-center gap-2 py-3 text-sm">
-                  Outros Jogos
+                  {t('otherGames')}
                 </Link>
               </div>
             </motion.div>
